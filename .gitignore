@@ -9,3 +9,4 @@ build/
 *.log
 coverage/
 data/local/
+**/data/local/

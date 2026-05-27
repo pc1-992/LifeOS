@@ -1,11 +1,11 @@
-import { InMemoryMemoryRepository } from "@lifeos/adapters";
+import { SQLiteMemoryRepository } from "@lifeos/adapters";
 import { CaptureMemoryUseCase } from "@lifeos/application";
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 type PrivacyScope = "private" | "trusted" | "shareable";
 
-const memories = new InMemoryMemoryRepository();
+const memories = new SQLiteMemoryRepository();
 const captureMemory = new CaptureMemoryUseCase(memories);
 
 const port = Number(process.env.PORT ?? 4000);
