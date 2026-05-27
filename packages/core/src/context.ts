@@ -11,6 +11,10 @@ export type ContextSignal =
 export interface ContextSnapshot {
   id: string;
   capturedAt: Date;
+  mood: string;
+  energyLevel: number;
+  focusLevel: number;
+  currentSituation: string;
   summary: string;
   signals: ContextSignal[];
   privacyScope: PrivacyScope;

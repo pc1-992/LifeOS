@@ -13,6 +13,18 @@ interface Memory {
   privacyScope: PrivacyScope;
 }
 
+interface ContextSnapshot {
+  id: string;
+  capturedAt: string;
+  mood: string;
+  energyLevel: number;
+  focusLevel: number;
+  currentSituation: string;
+  summary: string;
+  signals: string[];
+  privacyScope: PrivacyScope;
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -22,15 +34,31 @@ function App() {
     React.useState<PrivacyScope>("private");
   const [memories, setMemories] = React.useState<Memory[]>([]);
   const [status, setStatus] = React.useState("");
+  const [mood, setMood] = React.useState("");
+  const [energyLevel, setEnergyLevel] = React.useState(5);
+  const [focusLevel, setFocusLevel] = React.useState(5);
+  const [currentSituation, setCurrentSituation] = React.useState("");
+  const [contextPrivacyScope, setContextPrivacyScope] =
+    React.useState<PrivacyScope>("private");
+  const [latestContext, setLatestContext] =
+    React.useState<ContextSnapshot | null>(null);
+  const [contextStatus, setContextStatus] = React.useState("");
 
   React.useEffect(() => {
     void loadMemories();
+    void loadLatestContext();
   }, []);
 
   async function loadMemories() {
     const response = await fetch(`${apiUrl}/memories`);
     const savedMemories = (await response.json()) as Memory[];
     setMemories(savedMemories);
+  }
+
+  async function loadLatestContext() {
+    const response = await fetch(`${apiUrl}/context/latest`);
+    const savedContext = (await response.json()) as ContextSnapshot | null;
+    setLatestContext(savedContext);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -62,8 +90,141 @@ function App() {
     await loadMemories();
   }
 
+  async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setContextStatus("Saving context...");
+
+    const response = await fetch(`${apiUrl}/context`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        mood,
+        energyLevel,
+        focusLevel,
+        currentSituation,
+        privacyScope: contextPrivacyScope
+      })
+    });
+
+    if (!response.ok) {
+      const result = (await response.json()) as { error?: string };
+      setContextStatus(result.error ?? "Could not save context.");
+      return;
+    }
+
+    setMood("");
+    setEnergyLevel(5);
+    setFocusLevel(5);
+    setCurrentSituation("");
+    setContextPrivacyScope("private");
+    setContextStatus("Context saved.");
+    await loadLatestContext();
+  }
+
   return (
     <main className="shell">
+      <section className="panel">
+        <p className="eyebrow">LifeOS</p>
+        <h1>Context Snapshot</h1>
+        <p className="intro">
+          Capture the current moment in a small, private-by-default snapshot.
+        </p>
+
+        <form className="context-form" onSubmit={handleContextSubmit}>
+          <label>
+            Mood
+            <input
+              value={mood}
+              onChange={(event) => setMood(event.target.value)}
+              placeholder="calm, tired, focused"
+            />
+          </label>
+
+          <label>
+            Energy level
+            <input
+              type="number"
+              min="1"
+              max="10"
+              value={energyLevel}
+              onChange={(event) => setEnergyLevel(Number(event.target.value))}
+            />
+          </label>
+
+          <label>
+            Focus level
+            <input
+              type="number"
+              min="1"
+              max="10"
+              value={focusLevel}
+              onChange={(event) => setFocusLevel(Number(event.target.value))}
+            />
+          </label>
+
+          <label>
+            Current situation
+            <textarea
+              value={currentSituation}
+              onChange={(event) => setCurrentSituation(event.target.value)}
+              placeholder="What is happening right now?"
+              rows={4}
+            />
+          </label>
+
+          <label>
+            Privacy scope
+            <select
+              value={contextPrivacyScope}
+              onChange={(event) =>
+                setContextPrivacyScope(event.target.value as PrivacyScope)
+              }
+            >
+              <option value="private">private</option>
+              <option value="trusted">trusted</option>
+              <option value="shareable">shareable</option>
+            </select>
+          </label>
+
+          <div className="form-actions">
+            <button type="submit">Save context</button>
+            <span role="status">{contextStatus}</span>
+          </div>
+        </form>
+      </section>
+
+      <section className="panel context-latest">
+        <h2>Latest Context</h2>
+        {latestContext === null ? (
+          <p className="empty-state">No context snapshot saved yet.</p>
+        ) : (
+          <div className="context-summary">
+            <p>{latestContext.summary}</p>
+            <dl>
+              <div>
+                <dt>Mood</dt>
+                <dd>{latestContext.mood}</dd>
+              </div>
+              <div>
+                <dt>Energy</dt>
+                <dd>{latestContext.energyLevel}/10</dd>
+              </div>
+              <div>
+                <dt>Focus</dt>
+                <dd>{latestContext.focusLevel}/10</dd>
+              </div>
+              <div>
+                <dt>Privacy</dt>
+                <dd>{latestContext.privacyScope}</dd>
+              </div>
+            </dl>
+            <p className="situation">{latestContext.currentSituation}</p>
+          </div>
+        )}
+      </section>
+
       <section className="panel">
         <p className="eyebrow">LifeOS</p>
         <h1>Memory Capture</h1>

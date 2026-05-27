@@ -57,7 +57,8 @@ h1 {
   line-height: 1.6;
 }
 
-.memory-form {
+.memory-form,
+.context-form {
   display: grid;
   gap: 18px;
   margin-top: 28px;
@@ -151,4 +152,51 @@ button {
   font-size: 13px;
   font-weight: 700;
   padding: 4px 8px;
+}
+
+.context-latest h2 {
+  margin: 0 0 16px;
+  font-size: 24px;
+}
+
+.context-summary p {
+  margin: 0;
+  color: #172026;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.context-summary dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.context-summary dl div {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.context-summary dt {
+  color: #44505a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.context-summary dd {
+  margin: 6px 0 0;
+  color: #172026;
+  font-size: 16px;
+}
+
+.context-summary .situation {
+  color: #44505a;
+}
+
+@media (max-width: 640px) {
+  .context-summary dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

@@ -1,12 +1,20 @@
-import { SQLiteMemoryRepository } from "@lifeos/adapters";
-import { CaptureMemoryUseCase } from "@lifeos/application";
+import {
+  SQLiteContextRepository,
+  SQLiteMemoryRepository
+} from "@lifeos/adapters";
+import {
+  CaptureContextUseCase,
+  CaptureMemoryUseCase
+} from "@lifeos/application";
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 type PrivacyScope = "private" | "trusted" | "shareable";
 
 const memories = new SQLiteMemoryRepository();
+const contexts = new SQLiteContextRepository();
 const captureMemory = new CaptureMemoryUseCase(memories);
+const captureContext = new CaptureContextUseCase(contexts);
 
 const port = Number(process.env.PORT ?? 4000);
 const privacyScopes: PrivacyScope[] = ["private", "trusted", "shareable"];
@@ -43,6 +51,38 @@ const server = createServer(
       });
 
       sendJson(response, 201, memory);
+    } catch (error) {
+      sendJson(response, 400, {
+        error: error instanceof Error ? error.message : "Invalid request."
+      });
+    }
+    return;
+  }
+
+  if (request.url === "/context/latest" && request.method === "GET") {
+    const latestContext = await contexts.latest();
+    sendJson(response, 200, latestContext);
+    return;
+  }
+
+  if (request.url === "/context" && request.method === "GET") {
+    const savedContexts = await contexts.findAll();
+    sendJson(response, 200, savedContexts);
+    return;
+  }
+
+  if (request.url === "/context" && request.method === "POST") {
+    try {
+      const body = await readJsonBody(request);
+      const context = await captureContext.execute({
+        mood: getString(body.mood),
+        energyLevel: getNumber(body.energyLevel),
+        focusLevel: getNumber(body.focusLevel),
+        currentSituation: getString(body.currentSituation),
+        privacyScope: getPrivacyScope(body.privacyScope)
+      });
+
+      sendJson(response, 201, context);
     } catch (error) {
       sendJson(response, 400, {
         error: error instanceof Error ? error.message : "Invalid request."
@@ -104,6 +144,18 @@ async function readJsonBody(request: IncomingMessage): Promise<Record<string, un
 
 function getString(value: unknown): string {
   return typeof value === "string" ? value : "";
+}
+
+function getNumber(value: unknown): number {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return Number(value);
+  }
+
+  return Number.NaN;
 }
 
 function getTags(value: unknown): string[] {

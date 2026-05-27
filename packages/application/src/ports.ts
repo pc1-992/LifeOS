@@ -9,4 +9,5 @@ export interface MemoryRepository {
 export interface ContextRepository {
   save(snapshot: ContextSnapshot): Promise<void>;
   latest(): Promise<ContextSnapshot | null>;
+  findAll(): Promise<ContextSnapshot[]>;
 }
