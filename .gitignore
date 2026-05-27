@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+.turbo/
+.vite/
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+data/local/
