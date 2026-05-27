@@ -8,6 +8,10 @@ export class InMemoryMemoryRepository implements MemoryRepository {
     this.memories.set(memory.id, memory);
   }
 
+  async findAll(): Promise<Memory[]> {
+    return [...this.memories.values()];
+  }
+
   async findByPrivacyScope(scope: PrivacyScope): Promise<Memory[]> {
     return [...this.memories.values()].filter(
       (memory) => memory.privacyScope === scope

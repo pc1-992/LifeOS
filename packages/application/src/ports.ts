@@ -2,6 +2,7 @@ import type { ContextSnapshot, Memory, PrivacyScope } from "@lifeos/core";
 
 export interface MemoryRepository {
   save(memory: Memory): Promise<void>;
+  findAll(): Promise<Memory[]>;
   findByPrivacyScope(scope: PrivacyScope): Promise<Memory[]>;
 }
 

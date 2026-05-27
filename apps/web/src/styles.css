@@ -16,8 +16,11 @@ body {
 
 .shell {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
   padding: 32px;
 }
 
@@ -46,9 +49,106 @@ h1 {
   letter-spacing: 0;
 }
 
-p {
+.intro,
+.empty-state {
   max-width: 620px;
   color: #44505a;
   font-size: 18px;
   line-height: 1.6;
+}
+
+.memory-form {
+  display: grid;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: #2b343b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+textarea,
+input,
+select {
+  width: 100%;
+  border: 1px solid #cbd5cc;
+  border-radius: 8px;
+  color: #172026;
+  background: #fbfcfa;
+  font: inherit;
+  font-weight: 400;
+  padding: 12px 14px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #2f6f6b;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 12px 16px;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.form-actions span {
+  color: #44505a;
+  font-size: 14px;
+}
+
+.memory-list h2 {
+  margin: 0 0 16px;
+  font-size: 24px;
+}
+
+.memory-list ul {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.memory-list li {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.memory-list li p {
+  margin: 0 0 12px;
+  color: #172026;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.memory-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.memory-meta span {
+  border: 1px solid #cbd5cc;
+  border-radius: 999px;
+  color: #2f6f6b;
+  background: #f6f7f2;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 8px;
 }
