@@ -54,6 +54,13 @@ interface DailyReflection {
   currentRoutineRecommendation: RoutineSuggestion;
 }
 
+interface ActivityFeedItem {
+  id: string;
+  timestamp: string;
+  type: "memory" | "context" | "routine_suggestion" | "daily_reflection";
+  summary: string;
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -79,10 +86,14 @@ function App() {
   );
   const [dailyReflection, setDailyReflection] =
     React.useState<DailyReflection | null>(null);
+  const [activityFeed, setActivityFeed] = React.useState<ActivityFeedItem[]>(
+    []
+  );
 
   React.useEffect(() => {
     void loadDashboard();
     void loadDailyReflection();
+    void loadActivityFeed();
     void loadMemories();
     void loadLatestContext();
     void loadRoutineSuggestion();
@@ -98,6 +109,12 @@ function App() {
     const response = await fetch(`${apiUrl}/daily-reflection`);
     const reflection = (await response.json()) as DailyReflection;
     setDailyReflection(reflection);
+  }
+
+  async function loadActivityFeed() {
+    const response = await fetch(`${apiUrl}/activity-feed`);
+    const feed = (await response.json()) as ActivityFeedItem[];
+    setActivityFeed(feed);
   }
 
   async function loadMemories() {
@@ -147,6 +164,7 @@ function App() {
     await loadMemories();
     await loadDashboard();
     await loadDailyReflection();
+    await loadActivityFeed();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -183,6 +201,7 @@ function App() {
     await loadRoutineSuggestion();
     await loadDashboard();
     await loadDailyReflection();
+    await loadActivityFeed();
   }
 
   return (
@@ -247,6 +266,24 @@ function App() {
               <p>{dailyReflection.currentRoutineRecommendation.name}</p>
             </section>
           </div>
+        )}
+      </section>
+
+      <section className="panel timeline-panel">
+        <p className="eyebrow">Activity Feed</p>
+        <h1>Timeline</h1>
+        {activityFeed.length === 0 ? (
+          <p className="empty-state">No activity yet.</p>
+        ) : (
+          <ol className="timeline-list">
+            {activityFeed.map((item) => (
+              <li key={item.id}>
+                <time>{formatTimestamp(item.timestamp)}</time>
+                <span>{formatActivityType(item.type)}</span>
+                <p>{item.summary}</p>
+              </li>
+            ))}
+          </ol>
         )}
       </section>
 
@@ -449,3 +486,14 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </React.StrictMode>
 );
+
+function formatTimestamp(timestamp: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(new Date(timestamp));
+}
+
+function formatActivityType(type: ActivityFeedItem["type"]): string {
+  return type.replace("_", " ");
+}

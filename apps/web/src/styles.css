@@ -40,6 +40,10 @@ body {
   border-color: #d6d0c9;
 }
 
+.timeline-panel {
+  border-color: #d1d7dd;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -125,6 +129,40 @@ h1 {
   margin: 0;
   color: #172026;
   font-size: 16px;
+  line-height: 1.5;
+}
+
+.timeline-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+}
+
+.timeline-list li {
+  border-left: 3px solid #cbd5cc;
+  padding: 2px 0 2px 14px;
+}
+
+.timeline-list time {
+  display: block;
+  color: #44505a;
+  font-size: 13px;
+}
+
+.timeline-list span {
+  display: inline-block;
+  margin-top: 6px;
+  color: #2f6f6b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.timeline-list p {
+  margin: 6px 0 0;
+  color: #172026;
+  font-size: 15px;
   line-height: 1.5;
 }
 

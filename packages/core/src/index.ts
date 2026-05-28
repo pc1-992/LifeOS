@@ -1,4 +1,8 @@
 export type { AgentTask, AgentTaskStatus } from "./agent-task.js";
+export type {
+  ActivityFeedItem,
+  ActivityFeedItemType
+} from "./activity-feed.js";
 export type { ContextSignal, ContextSnapshot } from "./context.js";
 export type { DashboardSummary } from "./dashboard.js";
 export type { DailyReflection } from "./daily-reflection.js";
