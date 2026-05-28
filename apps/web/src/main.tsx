@@ -125,6 +125,27 @@ interface RecommendationFeedback {
   mostSuccessfulRoutines: RoutineSuccessScore[];
 }
 
+type PersonalOperatingProfileTraitType =
+  | "strongest_focus_periods"
+  | "common_stress_patterns"
+  | "preferred_recovery_routines"
+  | "most_effective_recommendation_types"
+  | "energy_stability_trends";
+
+interface PersonalOperatingProfileTrait {
+  type: PersonalOperatingProfileTraitType;
+  title: string;
+  summary: string;
+  evidence: string[];
+}
+
+interface PersonalOperatingProfile {
+  generatedAt: string;
+  contextSnapshotCount: number;
+  actionHistoryCount: number;
+  traits: PersonalOperatingProfileTrait[];
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -165,6 +186,8 @@ function App() {
   const [actionStatus, setActionStatus] = React.useState("");
   const [recommendationFeedback, setRecommendationFeedback] =
     React.useState<RecommendationFeedback | null>(null);
+  const [operatingProfile, setOperatingProfile] =
+    React.useState<PersonalOperatingProfile | null>(null);
 
   React.useEffect(() => {
     void loadDashboard();
@@ -177,6 +200,7 @@ function App() {
     void loadRoutineSuggestion();
     void loadActionHistory();
     void loadRecommendationFeedback();
+    void loadOperatingProfile();
   }, []);
 
   async function loadDashboard() {
@@ -239,6 +263,12 @@ function App() {
     setRecommendationFeedback(feedback);
   }
 
+  async function loadOperatingProfile() {
+    const response = await fetch(`${apiUrl}/operating-profile`);
+    const profile = (await response.json()) as PersonalOperatingProfile;
+    setOperatingProfile(profile);
+  }
+
   async function recordAction(status: ActionCompletionStatus) {
     if (nextBestStep === null) {
       return;
@@ -268,6 +298,7 @@ function App() {
     setActionStatus(status === "completed" ? "Marked completed." : "Skipped.");
     await loadActionHistory();
     await loadRecommendationFeedback();
+    await loadOperatingProfile();
     await loadNextBestStep();
   }
 
@@ -305,6 +336,7 @@ function App() {
     await loadPatternInsights();
     await loadActionHistory();
     await loadRecommendationFeedback();
+    await loadOperatingProfile();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -346,6 +378,7 @@ function App() {
     await loadPatternInsights();
     await loadActionHistory();
     await loadRecommendationFeedback();
+    await loadOperatingProfile();
   }
 
   return (
@@ -494,6 +527,32 @@ function App() {
                 </ul>
               )}
             </section>
+          </div>
+        )}
+      </section>
+
+      <section className="panel dna-panel">
+        <p className="eyebrow">LifeOS DNA</p>
+        <h1>Operating profile</h1>
+        {operatingProfile === null ? (
+          <p className="empty-state">Loading operating profile.</p>
+        ) : (
+          <div className="dna-summary">
+            <p>
+              Based on {operatingProfile.contextSnapshotCount} context snapshot
+              {operatingProfile.contextSnapshotCount === 1 ? "" : "s"} and{" "}
+              {operatingProfile.actionHistoryCount} action record
+              {operatingProfile.actionHistoryCount === 1 ? "" : "s"}.
+            </p>
+            <ul>
+              {operatingProfile.traits.map((trait) => (
+                <li key={trait.type}>
+                  <h2>{trait.title}</h2>
+                  <p>{trait.summary}</p>
+                  <span>{trait.evidence[0]}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </section>

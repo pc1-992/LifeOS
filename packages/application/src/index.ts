@@ -5,6 +5,7 @@ export type { CaptureContextInput } from "./capture-context.js";
 export { DashboardSummaryUseCase } from "./dashboard-summary.js";
 export { GenerateDailyReflectionUseCase } from "./generate-daily-reflection.js";
 export { GenerateNextBestStepUseCase } from "./generate-next-best-step.js";
+export { GeneratePersonalOperatingProfileUseCase } from "./generate-personal-operating-profile.js";
 export { GeneratePatternInsightsUseCase } from "./generate-pattern-insights.js";
 export { GetActivityFeedUseCase } from "./get-activity-feed.js";
 export type {

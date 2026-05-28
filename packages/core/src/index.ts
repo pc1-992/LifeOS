@@ -14,6 +14,11 @@ export type { Memory } from "./memory.js";
 export type { NextBestStep, NextBestStepReason } from "./next-best-step.js";
 export type { PatternInsight, PatternInsightType } from "./pattern-insight.js";
 export type {
+  PersonalOperatingProfile,
+  PersonalOperatingProfileTrait,
+  PersonalOperatingProfileTraitType
+} from "./personal-operating-profile.js";
+export type {
   RecommendationFeedback,
   RecommendationScore,
   RoutineSuccessScore

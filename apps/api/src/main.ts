@@ -9,6 +9,7 @@ import {
   DashboardSummaryUseCase,
   GenerateDailyReflectionUseCase,
   GenerateNextBestStepUseCase,
+  GeneratePersonalOperatingProfileUseCase,
   GeneratePatternInsightsUseCase,
   GetActivityFeedUseCase,
   RecommendationFeedbackUseCase,
@@ -45,6 +46,11 @@ const dailyReflection = new GenerateDailyReflectionUseCase(memories, contexts);
 const activityFeed = new GetActivityFeedUseCase(memories, contexts);
 const patternInsights = new GeneratePatternInsightsUseCase(memories, contexts);
 const recommendationFeedback = new RecommendationFeedbackUseCase(actionHistory);
+const operatingProfile = new GeneratePersonalOperatingProfileUseCase(
+  memories,
+  contexts,
+  actionHistory
+);
 const nextBestStep = new GenerateNextBestStepUseCase(
   memories,
   contexts,
@@ -114,6 +120,12 @@ const server = createServer(
   if (path === "/recommendation-feedback" && request.method === "GET") {
     const feedback = await recommendationFeedback.execute();
     sendJson(response, 200, feedback);
+    return;
+  }
+
+  if (path === "/operating-profile" && request.method === "GET") {
+    const profile = await operatingProfile.execute();
+    sendJson(response, 200, profile);
     return;
   }
 
