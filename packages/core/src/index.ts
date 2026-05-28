@@ -7,5 +7,5 @@ export type {
   RoutineSuggestion,
   RoutineSuggestionReason
 } from "./routine.js";
-export type { PrivacyScope } from "./privacy.js";
+export type { PrivacyDecision, PrivacyScope } from "./privacy.js";
 export { canUseInContext } from "./privacy.js";

@@ -37,7 +37,7 @@ interface RoutineSuggestion {
     | "steady_state"
     | "no_context";
   basedOnContextId: string | null;
-  privacyScope: "private";
+  privacyScope: PrivacyScope;
 }
 
 interface DashboardSummary {
@@ -79,7 +79,7 @@ function App() {
   }, []);
 
   async function loadDashboard() {
-    const response = await fetch(`${apiUrl}/dashboard`);
+    const response = await fetch(`${apiUrl}/dashboard?scope=trusted`);
     const summary = (await response.json()) as DashboardSummary;
     setDashboard(summary);
   }

@@ -1,8 +1,10 @@
-import type { DashboardSummary, Memory } from "@lifeos/core";
+import type { DashboardSummary, Memory, PrivacyScope } from "@lifeos/core";
 import type { ContextRepository, MemoryRepository } from "./ports.js";
+import { PrivacyGuard } from "./privacy-guard.js";
 import { SuggestRoutineUseCase } from "./suggest-routine.js";
 
 export class DashboardSummaryUseCase {
+  private readonly privacyGuard = new PrivacyGuard();
   private readonly suggestRoutine: SuggestRoutineUseCase;
 
   constructor(
@@ -12,7 +14,7 @@ export class DashboardSummaryUseCase {
     this.suggestRoutine = new SuggestRoutineUseCase(contexts);
   }
 
-  async execute(): Promise<DashboardSummary> {
+  async execute(requestedScope: PrivacyScope = "trusted"): Promise<DashboardSummary> {
     const [allMemories, latestContext, suggestedRoutine] = await Promise.all([
       this.memories.findAll(),
       this.contexts.latest(),
@@ -20,12 +22,24 @@ export class DashboardSummaryUseCase {
     ]);
 
     const latestMemory = getLatestMemory(allMemories);
+    const visibleMemory =
+      latestMemory === null
+        ? null
+        : this.privacyGuard.redactMemory(latestMemory, requestedScope);
+    const visibleContext =
+      latestContext === null
+        ? null
+        : this.privacyGuard.redactContext(latestContext, requestedScope);
+    const visibleRoutine = this.privacyGuard.redactRoutineSuggestion(
+      suggestedRoutine,
+      requestedScope
+    );
 
     return {
-      whatMattersNow: getWhatMattersNow(latestContext, suggestedRoutine.name),
-      latestMemory,
-      latestContext,
-      suggestedRoutine
+      whatMattersNow: getWhatMattersNow(visibleContext, visibleRoutine.name),
+      latestMemory: visibleMemory,
+      latestContext: visibleContext,
+      suggestedRoutine: visibleRoutine
     };
   }
 }

@@ -29,29 +29,39 @@ const allowedOrigins = new Set([
 
 const server = createServer(
   async (request: IncomingMessage, response: ServerResponse) => {
+  const requestUrl = new URL(
+    request.url ?? "/",
+    `http://${request.headers.host ?? "localhost"}`
+  );
+  const path = requestUrl.pathname;
+
   if (request.method === "OPTIONS") {
     sendJson(response, 204, null);
     return;
   }
 
-  if (request.url === "/health") {
+  if (path === "/health") {
     sendJson(response, 200, { ok: true, service: "lifeos-api" });
     return;
   }
 
-  if (request.url === "/dashboard" && request.method === "GET") {
-    const dashboard = await dashboardSummary.execute();
+  if (path === "/dashboard" && request.method === "GET") {
+    const requestedScope = getPrivacyScopeWithDefault(
+      requestUrl.searchParams.get("scope"),
+      "trusted"
+    );
+    const dashboard = await dashboardSummary.execute(requestedScope);
     sendJson(response, 200, dashboard);
     return;
   }
 
-  if (request.url === "/memories" && request.method === "GET") {
+  if (path === "/memories" && request.method === "GET") {
     const savedMemories = await memories.findAll();
     sendJson(response, 200, savedMemories);
     return;
   }
 
-  if (request.url === "/memories" && request.method === "POST") {
+  if (path === "/memories" && request.method === "POST") {
     try {
       const body = await readJsonBody(request);
       const memory = await captureMemory.execute({
@@ -69,19 +79,19 @@ const server = createServer(
     return;
   }
 
-  if (request.url === "/context/latest" && request.method === "GET") {
+  if (path === "/context/latest" && request.method === "GET") {
     const latestContext = await contexts.latest();
     sendJson(response, 200, latestContext);
     return;
   }
 
-  if (request.url === "/context" && request.method === "GET") {
+  if (path === "/context" && request.method === "GET") {
     const savedContexts = await contexts.findAll();
     sendJson(response, 200, savedContexts);
     return;
   }
 
-  if (request.url === "/context" && request.method === "POST") {
+  if (path === "/context" && request.method === "POST") {
     try {
       const body = await readJsonBody(request);
       const context = await captureContext.execute({
@@ -102,7 +112,7 @@ const server = createServer(
   }
 
   if (
-    request.url === "/routine-suggestions/latest" &&
+    path === "/routine-suggestions/latest" &&
     request.method === "GET"
   ) {
     const suggestion = await suggestRoutine.execute();
@@ -189,6 +199,13 @@ function getTags(value: unknown): string[] {
 }
 
 function getPrivacyScope(value: unknown): PrivacyScope {
+  return getPrivacyScopeWithDefault(value, "private");
+}
+
+function getPrivacyScopeWithDefault(
+  value: unknown,
+  fallback: PrivacyScope
+): PrivacyScope {
   if (
     typeof value === "string" &&
     privacyScopes.includes(value as PrivacyScope)
@@ -196,5 +213,5 @@ function getPrivacyScope(value: unknown): PrivacyScope {
     return value as PrivacyScope;
   }
 
-  return "private";
+  return fallback;
 }

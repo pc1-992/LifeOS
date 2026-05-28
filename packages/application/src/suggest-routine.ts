@@ -20,7 +20,7 @@ export class SuggestRoutineUseCase {
         ],
         reason: "no_context",
         basedOnContextId: null,
-        privacyScope: "private"
+        privacyScope: "shareable"
       };
     }
 
@@ -44,7 +44,7 @@ function suggestFromContext(context: ContextSnapshot): RoutineSuggestion {
       ],
       reason: "stressed_mood",
       basedOnContextId: context.id,
-      privacyScope: "private"
+      privacyScope: context.privacyScope
     };
   }
 
@@ -61,7 +61,7 @@ function suggestFromContext(context: ContextSnapshot): RoutineSuggestion {
       ],
       reason: "low_energy",
       basedOnContextId: context.id,
-      privacyScope: "private"
+      privacyScope: context.privacyScope
     };
   }
 
@@ -78,7 +78,7 @@ function suggestFromContext(context: ContextSnapshot): RoutineSuggestion {
       ],
       reason: "low_focus",
       basedOnContextId: context.id,
-      privacyScope: "private"
+      privacyScope: context.privacyScope
     };
   }
 
@@ -94,7 +94,7 @@ function suggestFromContext(context: ContextSnapshot): RoutineSuggestion {
     ],
     reason: "steady_state",
     basedOnContextId: context.id,
-    privacyScope: "private"
+    privacyScope: context.privacyScope
   };
 }
 

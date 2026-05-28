@@ -1,5 +1,12 @@
 export type PrivacyScope = "private" | "trusted" | "shareable";
 
+export interface PrivacyDecision {
+  allowed: boolean;
+  sourceScope: PrivacyScope;
+  requestedScope: PrivacyScope;
+  reason: string;
+}
+
 export function canUseInContext(
   sourceScope: PrivacyScope,
   requestedScope: PrivacyScope

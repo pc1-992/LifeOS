@@ -1,3 +1,5 @@
+import type { PrivacyScope } from "./privacy.js";
+
 export interface Routine {
   id: string;
   name: string;
@@ -20,5 +22,5 @@ export interface RoutineSuggestion {
   steps: string[];
   reason: RoutineSuggestionReason;
   basedOnContextId: string | null;
-  privacyScope: "private";
+  privacyScope: PrivacyScope;
 }
