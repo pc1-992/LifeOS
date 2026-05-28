@@ -3,21 +3,29 @@ import type {
   DailyReflection,
   NextBestStep,
   PatternInsight,
+  RecommendationFeedback,
   RoutineSuggestion
 } from "@lifeos/core";
-import type { ContextRepository, MemoryRepository } from "./ports.js";
+import type {
+  ActionHistoryRepository,
+  ContextRepository,
+  MemoryRepository
+} from "./ports.js";
 import { GenerateDailyReflectionUseCase } from "./generate-daily-reflection.js";
 import { GeneratePatternInsightsUseCase } from "./generate-pattern-insights.js";
+import { RecommendationFeedbackUseCase } from "./recommendation-feedback.js";
 import { SuggestRoutineUseCase } from "./suggest-routine.js";
 
 export class GenerateNextBestStepUseCase {
   private readonly generateDailyReflection: GenerateDailyReflectionUseCase;
   private readonly generatePatternInsights: GeneratePatternInsightsUseCase;
+  private readonly recommendationFeedback?: RecommendationFeedbackUseCase;
   private readonly suggestRoutine: SuggestRoutineUseCase;
 
   constructor(
     memories: MemoryRepository,
-    private readonly contexts: ContextRepository
+    private readonly contexts: ContextRepository,
+    actionHistory?: ActionHistoryRepository
   ) {
     this.generateDailyReflection = new GenerateDailyReflectionUseCase(
       memories,
@@ -27,15 +35,20 @@ export class GenerateNextBestStepUseCase {
       memories,
       contexts
     );
+    this.recommendationFeedback =
+      actionHistory === undefined
+        ? undefined
+        : new RecommendationFeedbackUseCase(actionHistory);
     this.suggestRoutine = new SuggestRoutineUseCase(contexts);
   }
 
   async execute(): Promise<NextBestStep> {
-    const [latestContext, routine, reflection, insights] = await Promise.all([
+    const [latestContext, routine, reflection, insights, feedback] = await Promise.all([
       this.contexts.latest(),
       this.suggestRoutine.execute(),
       this.generateDailyReflection.execute(),
-      this.generatePatternInsights.execute()
+      this.generatePatternInsights.execute(),
+      this.recommendationFeedback?.execute() ?? Promise.resolve(null)
     ]);
 
     if (latestContext === null) {
@@ -48,7 +61,9 @@ export class GenerateNextBestStepUseCase {
       };
     }
 
-    return chooseStep(latestContext, routine, reflection, insights);
+    const contextBasedStep = chooseStep(latestContext, routine, reflection, insights);
+
+    return preferHighScoringStep(contextBasedStep, latestContext, feedback);
   }
 }
 
@@ -113,4 +128,26 @@ function getInsightSummary(
   type: PatternInsight["type"]
 ): string {
   return insights.find((insight) => insight.type === type)?.summary ?? "";
+}
+
+function preferHighScoringStep(
+  contextBasedStep: NextBestStep,
+  context: ContextSnapshot,
+  feedback: RecommendationFeedback | null
+): NextBestStep {
+  const bestRecommendation = feedback?.highlyEffectiveRecommendations[0];
+
+  if (bestRecommendation === undefined) {
+    return contextBasedStep;
+  }
+
+  return {
+    id: `next_best_step_feedback_${context.id}`,
+    title: bestRecommendation.title,
+    action: bestRecommendation.action,
+    reason: bestRecommendation.reason,
+    supportingSummary: `This recommendation has worked well before with a score of ${bestRecommendation.score.toFixed(
+      1
+    )}.`
+  };
 }

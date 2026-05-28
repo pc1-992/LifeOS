@@ -11,6 +11,7 @@ import {
   GenerateNextBestStepUseCase,
   GeneratePatternInsightsUseCase,
   GetActivityFeedUseCase,
+  RecommendationFeedbackUseCase,
   RecordActionCompletionUseCase,
   SuggestRoutineUseCase
 } from "@lifeos/application";
@@ -43,7 +44,12 @@ const dashboardSummary = new DashboardSummaryUseCase(memories, contexts);
 const dailyReflection = new GenerateDailyReflectionUseCase(memories, contexts);
 const activityFeed = new GetActivityFeedUseCase(memories, contexts);
 const patternInsights = new GeneratePatternInsightsUseCase(memories, contexts);
-const nextBestStep = new GenerateNextBestStepUseCase(memories, contexts);
+const recommendationFeedback = new RecommendationFeedbackUseCase(actionHistory);
+const nextBestStep = new GenerateNextBestStepUseCase(
+  memories,
+  contexts,
+  actionHistory
+);
 const recordActionCompletion = new RecordActionCompletionUseCase(actionHistory);
 
 const port = Number(process.env.PORT ?? 4000);
@@ -102,6 +108,12 @@ const server = createServer(
   if (path === "/next-best-step" && request.method === "GET") {
     const step = await nextBestStep.execute();
     sendJson(response, 200, step);
+    return;
+  }
+
+  if (path === "/recommendation-feedback" && request.method === "GET") {
+    const feedback = await recommendationFeedback.execute();
+    sendJson(response, 200, feedback);
     return;
   }
 

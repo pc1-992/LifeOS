@@ -96,6 +96,35 @@ interface ActionHistoryEntry {
   effectivenessScore?: number;
 }
 
+interface RecommendationScore {
+  recommendationKey: string;
+  title: string;
+  action: string;
+  reason: NextBestStep["reason"];
+  completedCount: number;
+  skippedCount: number;
+  totalCount: number;
+  completionRate: number;
+  averageEffectivenessScore: number | null;
+  score: number;
+}
+
+interface RoutineSuccessScore {
+  routineName: string;
+  completedCount: number;
+  skippedCount: number;
+  completionRate: number;
+  score: number;
+}
+
+interface RecommendationFeedback {
+  generatedAt: string;
+  totalActions: number;
+  highlyEffectiveRecommendations: RecommendationScore[];
+  frequentlySkippedRecommendations: RecommendationScore[];
+  mostSuccessfulRoutines: RoutineSuccessScore[];
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -134,6 +163,8 @@ function App() {
     []
   );
   const [actionStatus, setActionStatus] = React.useState("");
+  const [recommendationFeedback, setRecommendationFeedback] =
+    React.useState<RecommendationFeedback | null>(null);
 
   React.useEffect(() => {
     void loadDashboard();
@@ -145,6 +176,7 @@ function App() {
     void loadLatestContext();
     void loadRoutineSuggestion();
     void loadActionHistory();
+    void loadRecommendationFeedback();
   }, []);
 
   async function loadDashboard() {
@@ -201,6 +233,12 @@ function App() {
     setActionHistory(history);
   }
 
+  async function loadRecommendationFeedback() {
+    const response = await fetch(`${apiUrl}/recommendation-feedback`);
+    const feedback = (await response.json()) as RecommendationFeedback;
+    setRecommendationFeedback(feedback);
+  }
+
   async function recordAction(status: ActionCompletionStatus) {
     if (nextBestStep === null) {
       return;
@@ -229,6 +267,8 @@ function App() {
 
     setActionStatus(status === "completed" ? "Marked completed." : "Skipped.");
     await loadActionHistory();
+    await loadRecommendationFeedback();
+    await loadNextBestStep();
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -264,6 +304,7 @@ function App() {
     await loadActivityFeed();
     await loadPatternInsights();
     await loadActionHistory();
+    await loadRecommendationFeedback();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -304,6 +345,7 @@ function App() {
     await loadActivityFeed();
     await loadPatternInsights();
     await loadActionHistory();
+    await loadRecommendationFeedback();
   }
 
   return (
@@ -386,6 +428,73 @@ function App() {
               </li>
             ))}
           </ol>
+        )}
+      </section>
+
+      <section className="panel feedback-panel">
+        <p className="eyebrow">Recommendation Feedback</p>
+        <h1>What works best</h1>
+        {recommendationFeedback === null ||
+        recommendationFeedback.totalActions === 0 ? (
+          <p className="empty-state">Complete or skip actions to build feedback.</p>
+        ) : (
+          <div className="feedback-summary">
+            <section>
+              <h2>Working Well</h2>
+              {recommendationFeedback.highlyEffectiveRecommendations.length ===
+              0 ? (
+                <p>No clear pattern yet.</p>
+              ) : (
+                <ul>
+                  {recommendationFeedback.highlyEffectiveRecommendations.map(
+                    (recommendation) => (
+                      <li key={recommendation.recommendationKey}>
+                        <p>{recommendation.action}</p>
+                        <span>{formatScore(recommendation.score)}</span>
+                      </li>
+                    )
+                  )}
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <h2>Often Skipped</h2>
+              {recommendationFeedback.frequentlySkippedRecommendations.length ===
+              0 ? (
+                <p>No repeated skips yet.</p>
+              ) : (
+                <ul>
+                  {recommendationFeedback.frequentlySkippedRecommendations.map(
+                    (recommendation) => (
+                      <li key={recommendation.recommendationKey}>
+                        <p>{recommendation.action}</p>
+                        <span>{recommendation.skippedCount} skipped</span>
+                      </li>
+                    )
+                  )}
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <h2>Successful Routines</h2>
+              {recommendationFeedback.mostSuccessfulRoutines.length === 0 ? (
+                <p>No routine pattern yet.</p>
+              ) : (
+                <ul>
+                  {recommendationFeedback.mostSuccessfulRoutines.map(
+                    (routine) => (
+                      <li key={routine.routineName}>
+                        <p>{routine.routineName}</p>
+                        <span>{formatPercent(routine.completionRate)}</span>
+                      </li>
+                    )
+                  )}
+                </ul>
+              )}
+            </section>
+          </div>
         )}
       </section>
 
@@ -668,4 +777,12 @@ function getRecentCompletedActions(
   return actionHistory
     .filter((entry) => entry.status === "completed")
     .slice(0, 5);
+}
+
+function formatScore(score: number): string {
+  return `score ${score.toFixed(1)}`;
+}
+
+function formatPercent(value: number): string {
+  return `${Math.round(value * 100)}% completed`;
 }
