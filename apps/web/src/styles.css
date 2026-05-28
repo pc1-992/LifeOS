@@ -154,7 +154,8 @@ button {
   padding: 4px 8px;
 }
 
-.context-latest h2 {
+.context-latest h2,
+.routine-suggestion h2 {
   margin: 0 0 16px;
   font-size: 24px;
 }
@@ -193,6 +194,31 @@ button {
 
 .context-summary .situation {
   color: #44505a;
+}
+
+.routine-summary {
+  display: grid;
+  gap: 14px;
+}
+
+.routine-summary p {
+  margin: 0;
+  color: #44505a;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.routine-summary .routine-name {
+  color: #172026;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.routine-summary ol {
+  margin: 0;
+  padding-left: 22px;
+  color: #172026;
+  line-height: 1.6;
 }
 
 @media (max-width: 640px) {

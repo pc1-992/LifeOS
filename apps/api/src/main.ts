@@ -4,7 +4,8 @@ import {
 } from "@lifeos/adapters";
 import {
   CaptureContextUseCase,
-  CaptureMemoryUseCase
+  CaptureMemoryUseCase,
+  SuggestRoutineUseCase
 } from "@lifeos/application";
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -15,6 +16,7 @@ const memories = new SQLiteMemoryRepository();
 const contexts = new SQLiteContextRepository();
 const captureMemory = new CaptureMemoryUseCase(memories);
 const captureContext = new CaptureContextUseCase(contexts);
+const suggestRoutine = new SuggestRoutineUseCase(contexts);
 
 const port = Number(process.env.PORT ?? 4000);
 const privacyScopes: PrivacyScope[] = ["private", "trusted", "shareable"];
@@ -88,6 +90,15 @@ const server = createServer(
         error: error instanceof Error ? error.message : "Invalid request."
       });
     }
+    return;
+  }
+
+  if (
+    request.url === "/routine-suggestions/latest" &&
+    request.method === "GET"
+  ) {
+    const suggestion = await suggestRoutine.execute();
+    sendJson(response, 200, suggestion);
     return;
   }
 

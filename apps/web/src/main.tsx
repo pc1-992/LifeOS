@@ -25,6 +25,21 @@ interface ContextSnapshot {
   privacyScope: PrivacyScope;
 }
 
+interface RoutineSuggestion {
+  id: string;
+  name: string;
+  description: string;
+  steps: string[];
+  reason:
+    | "low_energy"
+    | "low_focus"
+    | "stressed_mood"
+    | "steady_state"
+    | "no_context";
+  basedOnContextId: string | null;
+  privacyScope: "private";
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -43,10 +58,13 @@ function App() {
   const [latestContext, setLatestContext] =
     React.useState<ContextSnapshot | null>(null);
   const [contextStatus, setContextStatus] = React.useState("");
+  const [routineSuggestion, setRoutineSuggestion] =
+    React.useState<RoutineSuggestion | null>(null);
 
   React.useEffect(() => {
     void loadMemories();
     void loadLatestContext();
+    void loadRoutineSuggestion();
   }, []);
 
   async function loadMemories() {
@@ -59,6 +77,12 @@ function App() {
     const response = await fetch(`${apiUrl}/context/latest`);
     const savedContext = (await response.json()) as ContextSnapshot | null;
     setLatestContext(savedContext);
+  }
+
+  async function loadRoutineSuggestion() {
+    const response = await fetch(`${apiUrl}/routine-suggestions/latest`);
+    const suggestion = (await response.json()) as RoutineSuggestion;
+    setRoutineSuggestion(suggestion);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -121,6 +145,7 @@ function App() {
     setContextPrivacyScope("private");
     setContextStatus("Context saved.");
     await loadLatestContext();
+    await loadRoutineSuggestion();
   }
 
   return (
@@ -221,6 +246,27 @@ function App() {
               </div>
             </dl>
             <p className="situation">{latestContext.currentSituation}</p>
+          </div>
+        )}
+      </section>
+
+      <section className="panel routine-suggestion">
+        <h2>Suggested Routine</h2>
+        {routineSuggestion === null ? (
+          <p className="empty-state">No routine suggestion loaded yet.</p>
+        ) : (
+          <div className="routine-summary">
+            <p className="routine-name">{routineSuggestion.name}</p>
+            <p>{routineSuggestion.description}</p>
+            <ol>
+              {routineSuggestion.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+            <div className="memory-meta">
+              <span>{routineSuggestion.reason}</span>
+              <span>{routineSuggestion.privacyScope}</span>
+            </div>
           </div>
         )}
       </section>
