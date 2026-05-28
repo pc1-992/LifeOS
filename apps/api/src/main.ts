@@ -5,6 +5,7 @@ import {
 import {
   CaptureContextUseCase,
   CaptureMemoryUseCase,
+  DashboardSummaryUseCase,
   SuggestRoutineUseCase
 } from "@lifeos/application";
 import { createServer } from "node:http";
@@ -17,6 +18,7 @@ const contexts = new SQLiteContextRepository();
 const captureMemory = new CaptureMemoryUseCase(memories);
 const captureContext = new CaptureContextUseCase(contexts);
 const suggestRoutine = new SuggestRoutineUseCase(contexts);
+const dashboardSummary = new DashboardSummaryUseCase(memories, contexts);
 
 const port = Number(process.env.PORT ?? 4000);
 const privacyScopes: PrivacyScope[] = ["private", "trusted", "shareable"];
@@ -34,6 +36,12 @@ const server = createServer(
 
   if (request.url === "/health") {
     sendJson(response, 200, { ok: true, service: "lifeos-api" });
+    return;
+  }
+
+  if (request.url === "/dashboard" && request.method === "GET") {
+    const dashboard = await dashboardSummary.execute();
+    sendJson(response, 200, dashboard);
     return;
   }
 

@@ -40,6 +40,13 @@ interface RoutineSuggestion {
   privacyScope: "private";
 }
 
+interface DashboardSummary {
+  whatMattersNow: string;
+  latestMemory: Memory | null;
+  latestContext: ContextSnapshot | null;
+  suggestedRoutine: RoutineSuggestion;
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -60,12 +67,22 @@ function App() {
   const [contextStatus, setContextStatus] = React.useState("");
   const [routineSuggestion, setRoutineSuggestion] =
     React.useState<RoutineSuggestion | null>(null);
+  const [dashboard, setDashboard] = React.useState<DashboardSummary | null>(
+    null
+  );
 
   React.useEffect(() => {
+    void loadDashboard();
     void loadMemories();
     void loadLatestContext();
     void loadRoutineSuggestion();
   }, []);
+
+  async function loadDashboard() {
+    const response = await fetch(`${apiUrl}/dashboard`);
+    const summary = (await response.json()) as DashboardSummary;
+    setDashboard(summary);
+  }
 
   async function loadMemories() {
     const response = await fetch(`${apiUrl}/memories`);
@@ -112,6 +129,7 @@ function App() {
     setPrivacyScope("private");
     setStatus("Memory saved.");
     await loadMemories();
+    await loadDashboard();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -146,10 +164,47 @@ function App() {
     setContextStatus("Context saved.");
     await loadLatestContext();
     await loadRoutineSuggestion();
+    await loadDashboard();
   }
 
   return (
     <main className="shell">
+      <section className="panel dashboard-panel">
+        <p className="eyebrow">Daily Dashboard</p>
+        <h1>What matters now</h1>
+        {dashboard === null ? (
+          <p className="empty-state">Loading today&apos;s summary.</p>
+        ) : (
+          <div className="dashboard-summary">
+            <p className="what-now">{dashboard.whatMattersNow}</p>
+            <div className="dashboard-grid">
+              <section>
+                <h2>Latest Context</h2>
+                {dashboard.latestContext === null ? (
+                  <p>No context snapshot yet.</p>
+                ) : (
+                  <p>{dashboard.latestContext.summary}</p>
+                )}
+              </section>
+
+              <section>
+                <h2>Suggested Routine</h2>
+                <p>{dashboard.suggestedRoutine.name}</p>
+              </section>
+
+              <section>
+                <h2>Latest Memory</h2>
+                {dashboard.latestMemory === null ? (
+                  <p>No memory captured yet.</p>
+                ) : (
+                  <p>{dashboard.latestMemory.content}</p>
+                )}
+              </section>
+            </div>
+          </div>
+        )}
+      </section>
+
       <section className="panel">
         <p className="eyebrow">LifeOS</p>
         <h1>Context Snapshot</h1>

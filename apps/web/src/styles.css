@@ -32,6 +32,10 @@ body {
   padding: 32px;
 }
 
+.dashboard-panel {
+  border-color: #c9d6d2;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -55,6 +59,44 @@ h1 {
   color: #44505a;
   font-size: 18px;
   line-height: 1.6;
+}
+
+.dashboard-summary {
+  display: grid;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.dashboard-summary .what-now {
+  margin: 0;
+  color: #172026;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dashboard-grid section {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.dashboard-grid h2 {
+  margin: 0 0 10px;
+  color: #44505a;
+  font-size: 14px;
+}
+
+.dashboard-grid p {
+  margin: 0;
+  color: #172026;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 .memory-form,
@@ -222,6 +264,10 @@ button {
 }
 
 @media (max-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
   .context-summary dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
