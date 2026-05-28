@@ -7,6 +7,7 @@ import {
   CaptureMemoryUseCase,
   DashboardSummaryUseCase,
   GenerateDailyReflectionUseCase,
+  GeneratePatternInsightsUseCase,
   GetActivityFeedUseCase,
   SuggestRoutineUseCase
 } from "@lifeos/application";
@@ -23,6 +24,7 @@ const suggestRoutine = new SuggestRoutineUseCase(contexts);
 const dashboardSummary = new DashboardSummaryUseCase(memories, contexts);
 const dailyReflection = new GenerateDailyReflectionUseCase(memories, contexts);
 const activityFeed = new GetActivityFeedUseCase(memories, contexts);
+const patternInsights = new GeneratePatternInsightsUseCase(memories, contexts);
 
 const port = Number(process.env.PORT ?? 4000);
 const privacyScopes: PrivacyScope[] = ["private", "trusted", "shareable"];
@@ -68,6 +70,12 @@ const server = createServer(
   if (path === "/activity-feed" && request.method === "GET") {
     const feed = await activityFeed.execute();
     sendJson(response, 200, feed);
+    return;
+  }
+
+  if (path === "/pattern-insights" && request.method === "GET") {
+    const insights = await patternInsights.execute();
+    sendJson(response, 200, insights);
     return;
   }
 

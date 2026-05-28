@@ -61,6 +61,18 @@ interface ActivityFeedItem {
   summary: string;
 }
 
+interface PatternInsight {
+  id: string;
+  type:
+    | "energy_focus"
+    | "mood_frequency"
+    | "routine_frequency"
+    | "memory_tags"
+    | "activity_mix";
+  title: string;
+  summary: string;
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -89,11 +101,15 @@ function App() {
   const [activityFeed, setActivityFeed] = React.useState<ActivityFeedItem[]>(
     []
   );
+  const [patternInsights, setPatternInsights] = React.useState<
+    PatternInsight[]
+  >([]);
 
   React.useEffect(() => {
     void loadDashboard();
     void loadDailyReflection();
     void loadActivityFeed();
+    void loadPatternInsights();
     void loadMemories();
     void loadLatestContext();
     void loadRoutineSuggestion();
@@ -115,6 +131,12 @@ function App() {
     const response = await fetch(`${apiUrl}/activity-feed`);
     const feed = (await response.json()) as ActivityFeedItem[];
     setActivityFeed(feed);
+  }
+
+  async function loadPatternInsights() {
+    const response = await fetch(`${apiUrl}/pattern-insights`);
+    const insights = (await response.json()) as PatternInsight[];
+    setPatternInsights(insights);
   }
 
   async function loadMemories() {
@@ -165,6 +187,7 @@ function App() {
     await loadDashboard();
     await loadDailyReflection();
     await loadActivityFeed();
+    await loadPatternInsights();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -202,6 +225,7 @@ function App() {
     await loadDashboard();
     await loadDailyReflection();
     await loadActivityFeed();
+    await loadPatternInsights();
   }
 
   return (
@@ -266,6 +290,23 @@ function App() {
               <p>{dailyReflection.currentRoutineRecommendation.name}</p>
             </section>
           </div>
+        )}
+      </section>
+
+      <section className="panel insights-panel">
+        <p className="eyebrow">Insights</p>
+        <h1>Patterns</h1>
+        {patternInsights.length === 0 ? (
+          <p className="empty-state">No insights yet.</p>
+        ) : (
+          <ul className="insights-list">
+            {patternInsights.map((insight) => (
+              <li key={insight.id}>
+                <h2>{insight.title}</h2>
+                <p>{insight.summary}</p>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 

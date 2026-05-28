@@ -44,6 +44,10 @@ body {
   border-color: #d1d7dd;
 }
 
+.insights-panel {
+  border-color: #cdd8ca;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -161,6 +165,33 @@ h1 {
 
 .timeline-list p {
   margin: 6px 0 0;
+  color: #172026;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.insights-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+}
+
+.insights-list li {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.insights-list h2 {
+  margin: 0 0 8px;
+  color: #44505a;
+  font-size: 14px;
+}
+
+.insights-list p {
+  margin: 0;
   color: #172026;
   font-size: 15px;
   line-height: 1.5;
