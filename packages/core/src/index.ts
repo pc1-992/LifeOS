@@ -1,5 +1,9 @@
 export type { AgentTask, AgentTaskStatus } from "./agent-task.js";
 export type {
+  ActionCompletionStatus,
+  ActionHistoryEntry
+} from "./action-history.js";
+export type {
   ActivityFeedItem,
   ActivityFeedItemType
 } from "./activity-feed.js";

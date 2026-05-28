@@ -86,6 +86,16 @@ interface NextBestStep {
   supportingSummary: string;
 }
 
+type ActionCompletionStatus = "completed" | "skipped";
+
+interface ActionHistoryEntry {
+  id: string;
+  suggestedAction: NextBestStep;
+  status: ActionCompletionStatus;
+  timestamp: string;
+  effectivenessScore?: number;
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -120,6 +130,10 @@ function App() {
   const [nextBestStep, setNextBestStep] = React.useState<NextBestStep | null>(
     null
   );
+  const [actionHistory, setActionHistory] = React.useState<ActionHistoryEntry[]>(
+    []
+  );
+  const [actionStatus, setActionStatus] = React.useState("");
 
   React.useEffect(() => {
     void loadDashboard();
@@ -130,6 +144,7 @@ function App() {
     void loadMemories();
     void loadLatestContext();
     void loadRoutineSuggestion();
+    void loadActionHistory();
   }, []);
 
   async function loadDashboard() {
@@ -180,6 +195,42 @@ function App() {
     setRoutineSuggestion(suggestion);
   }
 
+  async function loadActionHistory() {
+    const response = await fetch(`${apiUrl}/action-history`);
+    const history = (await response.json()) as ActionHistoryEntry[];
+    setActionHistory(history);
+  }
+
+  async function recordAction(status: ActionCompletionStatus) {
+    if (nextBestStep === null) {
+      return;
+    }
+
+    setActionStatus(
+      status === "completed" ? "Saving completion..." : "Saving skip..."
+    );
+
+    const response = await fetch(`${apiUrl}/action-history`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        suggestedAction: nextBestStep,
+        status
+      })
+    });
+
+    if (!response.ok) {
+      const result = (await response.json()) as { error?: string };
+      setActionStatus(result.error ?? "Could not save action.");
+      return;
+    }
+
+    setActionStatus(status === "completed" ? "Marked completed." : "Skipped.");
+    await loadActionHistory();
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("Saving memory...");
@@ -212,6 +263,7 @@ function App() {
     await loadDailyReflection();
     await loadActivityFeed();
     await loadPatternInsights();
+    await loadActionHistory();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -251,6 +303,7 @@ function App() {
     await loadDailyReflection();
     await loadActivityFeed();
     await loadPatternInsights();
+    await loadActionHistory();
   }
 
   return (
@@ -302,7 +355,37 @@ function App() {
             <p>{nextBestStep.action}</p>
             <span>{nextBestStep.reason}</span>
             <p className="supporting-summary">{nextBestStep.supportingSummary}</p>
+            <div className="completion-actions">
+              <button type="button" onClick={() => void recordAction("completed")}>
+                Completed
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => void recordAction("skipped")}
+              >
+                Skipped
+              </button>
+              <span role="status">{actionStatus}</span>
+            </div>
           </div>
+        )}
+      </section>
+
+      <section className="panel action-history-panel">
+        <p className="eyebrow">Action History</p>
+        <h1>Recent completions</h1>
+        {getRecentCompletedActions(actionHistory).length === 0 ? (
+          <p className="empty-state">No completed actions yet.</p>
+        ) : (
+          <ol className="action-history-list">
+            {getRecentCompletedActions(actionHistory).map((entry) => (
+              <li key={entry.id}>
+                <time>{formatTimestamp(entry.timestamp)}</time>
+                <p>{entry.suggestedAction.action}</p>
+              </li>
+            ))}
+          </ol>
         )}
       </section>
 
@@ -577,4 +660,12 @@ function formatTimestamp(timestamp: string): string {
 
 function formatActivityType(type: ActivityFeedItem["type"]): string {
   return type.replace("_", " ");
+}
+
+function getRecentCompletedActions(
+  actionHistory: ActionHistoryEntry[]
+): ActionHistoryEntry[] {
+  return actionHistory
+    .filter((entry) => entry.status === "completed")
+    .slice(0, 5);
 }

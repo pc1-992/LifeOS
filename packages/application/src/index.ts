@@ -7,6 +7,12 @@ export { GenerateDailyReflectionUseCase } from "./generate-daily-reflection.js";
 export { GenerateNextBestStepUseCase } from "./generate-next-best-step.js";
 export { GeneratePatternInsightsUseCase } from "./generate-pattern-insights.js";
 export { GetActivityFeedUseCase } from "./get-activity-feed.js";
-export type { ContextRepository, MemoryRepository } from "./ports.js";
+export type {
+  ActionHistoryRepository,
+  ContextRepository,
+  MemoryRepository
+} from "./ports.js";
 export { PrivacyGuard } from "./privacy-guard.js";
+export { RecordActionCompletionUseCase } from "./record-action-completion.js";
+export type { RecordActionCompletionInput } from "./record-action-completion.js";
 export { SuggestRoutineUseCase } from "./suggest-routine.js";

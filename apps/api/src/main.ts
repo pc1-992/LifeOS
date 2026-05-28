@@ -1,4 +1,5 @@
 import {
+  SQLiteActionHistoryRepository,
   SQLiteContextRepository,
   SQLiteMemoryRepository
 } from "@lifeos/adapters";
@@ -10,15 +11,31 @@ import {
   GenerateNextBestStepUseCase,
   GeneratePatternInsightsUseCase,
   GetActivityFeedUseCase,
+  RecordActionCompletionUseCase,
   SuggestRoutineUseCase
 } from "@lifeos/application";
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 type PrivacyScope = "private" | "trusted" | "shareable";
+type ActionCompletionStatus = "completed" | "skipped";
+
+interface NextBestStepBody {
+  id: string;
+  title: string;
+  action: string;
+  reason:
+    | "no_context"
+    | "recovery_needed"
+    | "momentum_available"
+    | "frequent_stress"
+    | "follow_reflection";
+  supportingSummary: string;
+}
 
 const memories = new SQLiteMemoryRepository();
 const contexts = new SQLiteContextRepository();
+const actionHistory = new SQLiteActionHistoryRepository();
 const captureMemory = new CaptureMemoryUseCase(memories);
 const captureContext = new CaptureContextUseCase(contexts);
 const suggestRoutine = new SuggestRoutineUseCase(contexts);
@@ -27,6 +44,7 @@ const dailyReflection = new GenerateDailyReflectionUseCase(memories, contexts);
 const activityFeed = new GetActivityFeedUseCase(memories, contexts);
 const patternInsights = new GeneratePatternInsightsUseCase(memories, contexts);
 const nextBestStep = new GenerateNextBestStepUseCase(memories, contexts);
+const recordActionCompletion = new RecordActionCompletionUseCase(actionHistory);
 
 const port = Number(process.env.PORT ?? 4000);
 const privacyScopes: PrivacyScope[] = ["private", "trusted", "shareable"];
@@ -84,6 +102,30 @@ const server = createServer(
   if (path === "/next-best-step" && request.method === "GET") {
     const step = await nextBestStep.execute();
     sendJson(response, 200, step);
+    return;
+  }
+
+  if (path === "/action-history" && request.method === "GET") {
+    const savedActionHistory = await actionHistory.findAll();
+    sendJson(response, 200, savedActionHistory);
+    return;
+  }
+
+  if (path === "/action-history" && request.method === "POST") {
+    try {
+      const body = await readJsonBody(request);
+      const entry = await recordActionCompletion.execute({
+        suggestedAction: getNextBestStepBody(body.suggestedAction),
+        status: getActionCompletionStatus(body.status),
+        effectivenessScore: getOptionalNumber(body.effectivenessScore)
+      });
+
+      sendJson(response, 201, entry);
+    } catch (error) {
+      sendJson(response, 400, {
+        error: error instanceof Error ? error.message : "Invalid request."
+      });
+    }
     return;
   }
 
@@ -217,6 +259,48 @@ function getNumber(value: unknown): number {
   }
 
   return Number.NaN;
+}
+
+function getOptionalNumber(value: unknown): number | undefined {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  return getNumber(value);
+}
+
+function getActionCompletionStatus(value: unknown): ActionCompletionStatus {
+  return value === "skipped" ? "skipped" : "completed";
+}
+
+function getNextBestStepBody(value: unknown): NextBestStepBody {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("Suggested action is required.");
+  }
+
+  const suggestedAction = value as Record<string, unknown>;
+
+  return {
+    id: getString(suggestedAction.id),
+    title: getString(suggestedAction.title),
+    action: getString(suggestedAction.action),
+    reason: getNextBestStepReason(suggestedAction.reason),
+    supportingSummary: getString(suggestedAction.supportingSummary)
+  };
+}
+
+function getNextBestStepReason(value: unknown): NextBestStepBody["reason"] {
+  if (
+    value === "no_context" ||
+    value === "recovery_needed" ||
+    value === "momentum_available" ||
+    value === "frequent_stress" ||
+    value === "follow_reflection"
+  ) {
+    return value;
+  }
+
+  return "follow_reflection";
 }
 
 function getTags(value: unknown): string[] {

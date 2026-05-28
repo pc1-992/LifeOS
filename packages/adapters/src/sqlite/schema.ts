@@ -20,3 +20,19 @@ export const contextSnapshotsTable = sqliteTable("context_snapshots", {
   signals: text("signals", { mode: "json" }).$type<string[]>().notNull(),
   privacyScope: text("privacy_scope").notNull()
 });
+
+export const actionHistoryTable = sqliteTable("action_history", {
+  id: text("id").primaryKey(),
+  suggestedAction: text("suggested_action", { mode: "json" })
+    .$type<{
+      id: string;
+      title: string;
+      action: string;
+      reason: string;
+      supportingSummary: string;
+    }>()
+    .notNull(),
+  status: text("status").notNull(),
+  timestamp: text("timestamp").notNull(),
+  effectivenessScore: integer("effectiveness_score")
+});
