@@ -48,6 +48,10 @@ body {
   border-color: #cdd8ca;
 }
 
+.next-step-panel {
+  border-color: #c7d6d0;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -195,6 +199,41 @@ h1 {
   color: #172026;
   font-size: 15px;
   line-height: 1.5;
+}
+
+.next-step-summary {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.next-step-summary h2 {
+  margin: 0;
+  color: #172026;
+  font-size: 22px;
+}
+
+.next-step-summary p {
+  margin: 0;
+  color: #172026;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.next-step-summary span {
+  width: fit-content;
+  border: 1px solid #cbd5cc;
+  border-radius: 999px;
+  color: #2f6f6b;
+  background: #f6f7f2;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.next-step-summary .supporting-summary {
+  color: #44505a;
+  font-size: 15px;
 }
 
 .memory-form,

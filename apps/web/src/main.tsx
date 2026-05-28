@@ -73,6 +73,19 @@ interface PatternInsight {
   summary: string;
 }
 
+interface NextBestStep {
+  id: string;
+  title: string;
+  action: string;
+  reason:
+    | "no_context"
+    | "recovery_needed"
+    | "momentum_available"
+    | "frequent_stress"
+    | "follow_reflection";
+  supportingSummary: string;
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -104,9 +117,13 @@ function App() {
   const [patternInsights, setPatternInsights] = React.useState<
     PatternInsight[]
   >([]);
+  const [nextBestStep, setNextBestStep] = React.useState<NextBestStep | null>(
+    null
+  );
 
   React.useEffect(() => {
     void loadDashboard();
+    void loadNextBestStep();
     void loadDailyReflection();
     void loadActivityFeed();
     void loadPatternInsights();
@@ -119,6 +136,12 @@ function App() {
     const response = await fetch(`${apiUrl}/dashboard?scope=trusted`);
     const summary = (await response.json()) as DashboardSummary;
     setDashboard(summary);
+  }
+
+  async function loadNextBestStep() {
+    const response = await fetch(`${apiUrl}/next-best-step`);
+    const step = (await response.json()) as NextBestStep;
+    setNextBestStep(step);
   }
 
   async function loadDailyReflection() {
@@ -185,6 +208,7 @@ function App() {
     setStatus("Memory saved.");
     await loadMemories();
     await loadDashboard();
+    await loadNextBestStep();
     await loadDailyReflection();
     await loadActivityFeed();
     await loadPatternInsights();
@@ -223,6 +247,7 @@ function App() {
     await loadLatestContext();
     await loadRoutineSuggestion();
     await loadDashboard();
+    await loadNextBestStep();
     await loadDailyReflection();
     await loadActivityFeed();
     await loadPatternInsights();
@@ -262,6 +287,21 @@ function App() {
                 )}
               </section>
             </div>
+          </div>
+        )}
+      </section>
+
+      <section className="panel next-step-panel">
+        <p className="eyebrow">Next Best Step</p>
+        <h1>One clear action</h1>
+        {nextBestStep === null ? (
+          <p className="empty-state">Loading next step.</p>
+        ) : (
+          <div className="next-step-summary">
+            <h2>{nextBestStep.title}</h2>
+            <p>{nextBestStep.action}</p>
+            <span>{nextBestStep.reason}</span>
+            <p className="supporting-summary">{nextBestStep.supportingSummary}</p>
           </div>
         )}
       </section>

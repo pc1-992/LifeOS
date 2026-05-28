@@ -7,6 +7,7 @@ import {
   CaptureMemoryUseCase,
   DashboardSummaryUseCase,
   GenerateDailyReflectionUseCase,
+  GenerateNextBestStepUseCase,
   GeneratePatternInsightsUseCase,
   GetActivityFeedUseCase,
   SuggestRoutineUseCase
@@ -25,6 +26,7 @@ const dashboardSummary = new DashboardSummaryUseCase(memories, contexts);
 const dailyReflection = new GenerateDailyReflectionUseCase(memories, contexts);
 const activityFeed = new GetActivityFeedUseCase(memories, contexts);
 const patternInsights = new GeneratePatternInsightsUseCase(memories, contexts);
+const nextBestStep = new GenerateNextBestStepUseCase(memories, contexts);
 
 const port = Number(process.env.PORT ?? 4000);
 const privacyScopes: PrivacyScope[] = ["private", "trusted", "shareable"];
@@ -76,6 +78,12 @@ const server = createServer(
   if (path === "/pattern-insights" && request.method === "GET") {
     const insights = await patternInsights.execute();
     sendJson(response, 200, insights);
+    return;
+  }
+
+  if (path === "/next-best-step" && request.method === "GET") {
+    const step = await nextBestStep.execute();
+    sendJson(response, 200, step);
     return;
   }
 
