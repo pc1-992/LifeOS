@@ -1,6 +1,7 @@
 export type { AgentTask, AgentTaskStatus } from "./agent-task.js";
 export type { ContextSignal, ContextSnapshot } from "./context.js";
 export type { DashboardSummary } from "./dashboard.js";
+export type { DailyReflection } from "./daily-reflection.js";
 export type { Memory } from "./memory.js";
 export type {
   Routine,

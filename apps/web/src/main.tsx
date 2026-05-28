@@ -47,6 +47,13 @@ interface DashboardSummary {
   suggestedRoutine: RoutineSuggestion;
 }
 
+interface DailyReflection {
+  emotionalState: string;
+  whatMatteredMost: string;
+  suggestedNextStep: string;
+  currentRoutineRecommendation: RoutineSuggestion;
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -70,9 +77,12 @@ function App() {
   const [dashboard, setDashboard] = React.useState<DashboardSummary | null>(
     null
   );
+  const [dailyReflection, setDailyReflection] =
+    React.useState<DailyReflection | null>(null);
 
   React.useEffect(() => {
     void loadDashboard();
+    void loadDailyReflection();
     void loadMemories();
     void loadLatestContext();
     void loadRoutineSuggestion();
@@ -82,6 +92,12 @@ function App() {
     const response = await fetch(`${apiUrl}/dashboard?scope=trusted`);
     const summary = (await response.json()) as DashboardSummary;
     setDashboard(summary);
+  }
+
+  async function loadDailyReflection() {
+    const response = await fetch(`${apiUrl}/daily-reflection`);
+    const reflection = (await response.json()) as DailyReflection;
+    setDailyReflection(reflection);
   }
 
   async function loadMemories() {
@@ -130,6 +146,7 @@ function App() {
     setStatus("Memory saved.");
     await loadMemories();
     await loadDashboard();
+    await loadDailyReflection();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -165,6 +182,7 @@ function App() {
     await loadLatestContext();
     await loadRoutineSuggestion();
     await loadDashboard();
+    await loadDailyReflection();
   }
 
   return (
@@ -201,6 +219,33 @@ function App() {
                 )}
               </section>
             </div>
+          </div>
+        )}
+      </section>
+
+      <section className="panel reflection-panel">
+        <p className="eyebrow">Daily Reflection</p>
+        <h1>Session review</h1>
+        {dailyReflection === null ? (
+          <p className="empty-state">Loading reflection.</p>
+        ) : (
+          <div className="reflection-summary">
+            <section>
+              <h2>Today&apos;s Emotional State</h2>
+              <p>{dailyReflection.emotionalState}</p>
+            </section>
+            <section>
+              <h2>What Mattered Most</h2>
+              <p>{dailyReflection.whatMatteredMost}</p>
+            </section>
+            <section>
+              <h2>Suggested Next Step</h2>
+              <p>{dailyReflection.suggestedNextStep}</p>
+            </section>
+            <section>
+              <h2>Current Routine Recommendation</h2>
+              <p>{dailyReflection.currentRoutineRecommendation.name}</p>
+            </section>
           </div>
         )}
       </section>

@@ -6,6 +6,7 @@ import {
   CaptureContextUseCase,
   CaptureMemoryUseCase,
   DashboardSummaryUseCase,
+  GenerateDailyReflectionUseCase,
   SuggestRoutineUseCase
 } from "@lifeos/application";
 import { createServer } from "node:http";
@@ -19,6 +20,7 @@ const captureMemory = new CaptureMemoryUseCase(memories);
 const captureContext = new CaptureContextUseCase(contexts);
 const suggestRoutine = new SuggestRoutineUseCase(contexts);
 const dashboardSummary = new DashboardSummaryUseCase(memories, contexts);
+const dailyReflection = new GenerateDailyReflectionUseCase(memories, contexts);
 
 const port = Number(process.env.PORT ?? 4000);
 const privacyScopes: PrivacyScope[] = ["private", "trusted", "shareable"];
@@ -52,6 +54,12 @@ const server = createServer(
     );
     const dashboard = await dashboardSummary.execute(requestedScope);
     sendJson(response, 200, dashboard);
+    return;
+  }
+
+  if (path === "/daily-reflection" && request.method === "GET") {
+    const reflection = await dailyReflection.execute();
+    sendJson(response, 200, reflection);
     return;
   }
 

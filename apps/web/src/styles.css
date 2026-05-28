@@ -36,6 +36,10 @@ body {
   border-color: #c9d6d2;
 }
 
+.reflection-panel {
+  border-color: #d6d0c9;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -96,6 +100,31 @@ h1 {
   margin: 0;
   color: #172026;
   font-size: 15px;
+  line-height: 1.5;
+}
+
+.reflection-summary {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.reflection-summary section {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.reflection-summary h2 {
+  margin: 0 0 8px;
+  color: #44505a;
+  font-size: 14px;
+}
+
+.reflection-summary p {
+  margin: 0;
+  color: #172026;
+  font-size: 16px;
   line-height: 1.5;
 }
 
