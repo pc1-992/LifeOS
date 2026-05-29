@@ -72,6 +72,10 @@ body {
   border-color: #d2d8cf;
 }
 
+.memory-health-panel {
+  border-color: #d8d1cf;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -591,6 +595,82 @@ button {
   line-height: 1.4;
 }
 
+.memory-health-summary {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.quality-score {
+  display: grid;
+  gap: 4px;
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.quality-score span {
+  color: #2f6f6b;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.quality-score p {
+  margin: 0;
+  color: #44505a;
+  font-size: 14px;
+}
+
+.memory-health-summary dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.memory-health-summary dl div {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.memory-health-summary dt {
+  color: #44505a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.memory-health-summary dd {
+  margin: 6px 0 0;
+  color: #172026;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.memory-health-summary ul {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.memory-health-summary li {
+  border-left: 3px solid #cbd5cc;
+  color: #172026;
+  font-size: 15px;
+  line-height: 1.5;
+  padding-left: 12px;
+}
+
+.memory-health-empty {
+  margin: 0;
+  color: #44505a;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
 .form-actions {
   display: flex;
   align-items: center;
@@ -718,6 +798,10 @@ button {
   }
 
   .context-summary dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .memory-health-summary dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -12,6 +12,14 @@ export type { DashboardSummary } from "./dashboard.js";
 export type { DailyReflection } from "./daily-reflection.js";
 export type { Memory } from "./memory.js";
 export type {
+  MemoryConfidence,
+  MemoryHygieneResult,
+  MemoryIssue,
+  MemoryIssueType,
+  MemoryQualityReport,
+  MemoryStatus
+} from "./memory-hygiene.js";
+export type {
   RelevanceScore,
   RetrievalQuery,
   RetrievalReason,

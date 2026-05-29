@@ -202,6 +202,42 @@ interface RetrievalResult {
   relevance: RelevanceScore;
 }
 
+type MemoryStatus =
+  | "active"
+  | "stale"
+  | "deprecated"
+  | "conflicting"
+  | "low-confidence";
+
+type MemoryIssueType =
+  | "duplicate"
+  | "conflict"
+  | "stale"
+  | "low-confidence"
+  | "over-represented-pattern";
+
+interface MemoryIssue {
+  id: string;
+  type: MemoryIssueType;
+  status: MemoryStatus;
+  layer: StructuredMemoryLayerName;
+  itemIds: string[];
+  explanation: string;
+  recommendedAction: string;
+}
+
+interface MemoryQualityReport {
+  generatedAt: string;
+  qualityScore: number;
+  activeMemoryCount: number;
+  staleMemoryCount: number;
+  conflictingMemoryCount: number;
+  lowConfidenceMemoryCount: number;
+  deprecatedMemoryCount: number;
+  issues: MemoryIssue[];
+  suggestedCleanupActions: string[];
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -251,6 +287,8 @@ function App() {
   const [retrievalResults, setRetrievalResults] = React.useState<
     RetrievalResult[]
   >([]);
+  const [memoryQualityReport, setMemoryQualityReport] =
+    React.useState<MemoryQualityReport | null>(null);
 
   React.useEffect(() => {
     void loadDashboard();
@@ -266,6 +304,7 @@ function App() {
     void loadOperatingProfile();
     void loadMemoryLayers();
     void loadRelevantMemories();
+    void loadMemoryQualityReport();
   }, []);
 
   async function loadDashboard() {
@@ -359,6 +398,12 @@ function App() {
     await loadRelevantMemories(query);
   }
 
+  async function loadMemoryQualityReport() {
+    const response = await fetch(`${apiUrl}/memory/hygiene/report`);
+    const report = (await response.json()) as MemoryQualityReport;
+    setMemoryQualityReport(report);
+  }
+
   async function recordAction(status: ActionCompletionStatus) {
     if (nextBestStep === null) {
       return;
@@ -391,6 +436,7 @@ function App() {
     await loadOperatingProfile();
     await loadMemoryLayers();
     await loadRelevantMemories();
+    await loadMemoryQualityReport();
     await loadNextBestStep();
   }
 
@@ -431,6 +477,7 @@ function App() {
     await loadOperatingProfile();
     await loadMemoryLayers();
     await loadRelevantMemories();
+    await loadMemoryQualityReport();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -475,6 +522,7 @@ function App() {
     await loadOperatingProfile();
     await loadMemoryLayers();
     await loadRelevantMemories();
+    await loadMemoryQualityReport();
   }
 
   return (
@@ -719,6 +767,48 @@ function App() {
               </li>
             ))}
           </ol>
+        )}
+      </section>
+
+      <section className="panel memory-health-panel">
+        <p className="eyebrow">Memory Health</p>
+        <h1>Quality check</h1>
+        {memoryQualityReport === null ? (
+          <p className="empty-state">Loading memory health.</p>
+        ) : (
+          <div className="memory-health-summary">
+            <div className="quality-score">
+              <span>{memoryQualityReport.qualityScore}</span>
+              <p>memory quality score</p>
+            </div>
+            <dl>
+              <div>
+                <dt>Active</dt>
+                <dd>{memoryQualityReport.activeMemoryCount}</dd>
+              </div>
+              <div>
+                <dt>Stale</dt>
+                <dd>{memoryQualityReport.staleMemoryCount}</dd>
+              </div>
+              <div>
+                <dt>Conflicting</dt>
+                <dd>{memoryQualityReport.conflictingMemoryCount}</dd>
+              </div>
+              <div>
+                <dt>Low confidence</dt>
+                <dd>{memoryQualityReport.lowConfidenceMemoryCount}</dd>
+              </div>
+            </dl>
+            {memoryQualityReport.suggestedCleanupActions.length === 0 ? (
+              <p className="memory-health-empty">No cleanup actions suggested.</p>
+            ) : (
+              <ul>
+                {memoryQualityReport.suggestedCleanupActions.map((action) => (
+                  <li key={action}>{action}</li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </section>
 

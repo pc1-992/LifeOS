@@ -10,6 +10,7 @@ import {
   GenerateDailyReflectionUseCase,
   GenerateEpisodicMemoryUseCase,
   GenerateIdentityMemoryUseCase,
+  GenerateMemoryHygieneReportUseCase,
   GenerateNextBestStepUseCase,
   GeneratePersonalOperatingProfileUseCase,
   GeneratePatternInsightsUseCase,
@@ -77,6 +78,11 @@ const proceduralMemory = new GenerateProceduralMemoryUseCase(
   actionHistory
 );
 const retrieveRelevantMemories = new RetrieveRelevantMemoriesUseCase(
+  memories,
+  contexts,
+  actionHistory
+);
+const memoryHygiene = new GenerateMemoryHygieneReportUseCase(
   memories,
   contexts,
   actionHistory
@@ -203,6 +209,18 @@ const server = createServer(
         : getContextKeywords(latestContext.currentSituation)
     });
     sendJson(response, 200, results);
+    return;
+  }
+
+  if (path === "/memory/hygiene" && request.method === "GET") {
+    const result = await memoryHygiene.execute();
+    sendJson(response, 200, result);
+    return;
+  }
+
+  if (path === "/memory/hygiene/report" && request.method === "GET") {
+    const result = await memoryHygiene.execute();
+    sendJson(response, 200, result.report);
     return;
   }
 
