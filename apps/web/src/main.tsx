@@ -256,6 +256,55 @@ interface StableTruth {
   explanation: string;
 }
 
+type KnowledgeNodeType =
+  | "memory"
+  | "context"
+  | "routine"
+  | "action"
+  | "reflection"
+  | "insight"
+  | "stable-truth"
+  | "profile-trait"
+  | "next-step";
+
+type KnowledgeEdgeType =
+  | "caused-by"
+  | "related-to"
+  | "supports"
+  | "contradicts"
+  | "derived-from"
+  | "improves"
+  | "weakens"
+  | "follows"
+  | "references";
+
+interface KnowledgeNode {
+  id: string;
+  type: KnowledgeNodeType;
+  label: string;
+  summary: string;
+  sourceId: string;
+}
+
+interface KnowledgeEdge {
+  id: string;
+  type: KnowledgeEdgeType;
+  fromNodeId: string;
+  toNodeId: string;
+  explanation: string;
+  confidenceScore: number;
+  sourceEvidenceIds: string[];
+}
+
+interface KnowledgeGraphReport {
+  generatedAt: string;
+  nodeCount: number;
+  edgeCount: number;
+  strongestConnections: KnowledgeEdge[];
+  isolatedNodes: KnowledgeNode[];
+  contradictionCandidates: KnowledgeEdge[];
+}
+
 const apiUrl = getApiUrl();
 
 function App() {
@@ -308,6 +357,8 @@ function App() {
   const [memoryQualityReport, setMemoryQualityReport] =
     React.useState<MemoryQualityReport | null>(null);
   const [stableTruths, setStableTruths] = React.useState<StableTruth[]>([]);
+  const [knowledgeGraphReport, setKnowledgeGraphReport] =
+    React.useState<KnowledgeGraphReport | null>(null);
 
   React.useEffect(() => {
     void loadDashboard();
@@ -325,6 +376,7 @@ function App() {
     void loadRelevantMemories();
     void loadMemoryQualityReport();
     void loadStableTruths();
+    void loadKnowledgeGraphReport();
   }, []);
 
   async function loadDashboard() {
@@ -411,6 +463,12 @@ function App() {
     setStableTruths(await getJson<StableTruth[]>("/memory/stable-truths"));
   }
 
+  async function loadKnowledgeGraphReport() {
+    setKnowledgeGraphReport(
+      await getJson<KnowledgeGraphReport>("/knowledge-graph/report")
+    );
+  }
+
   async function recordAction(status: ActionCompletionStatus) {
     if (nextBestStep === null) {
       return;
@@ -438,6 +496,7 @@ function App() {
     await loadRelevantMemories();
     await loadMemoryQualityReport();
     await loadStableTruths();
+    await loadKnowledgeGraphReport();
     await loadNextBestStep();
   }
 
@@ -473,6 +532,7 @@ function App() {
     await loadRelevantMemories();
     await loadMemoryQualityReport();
     await loadStableTruths();
+    await loadKnowledgeGraphReport();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -512,6 +572,7 @@ function App() {
     await loadRelevantMemories();
     await loadMemoryQualityReport();
     await loadStableTruths();
+    await loadKnowledgeGraphReport();
   }
 
   return (
@@ -824,6 +885,75 @@ function App() {
               </li>
             ))}
           </ol>
+        )}
+      </section>
+
+      <section className="panel knowledge-graph-panel">
+        <p className="eyebrow">Knowledge Graph</p>
+        <h1>Relationship map</h1>
+        {knowledgeGraphReport === null ? (
+          <p className="empty-state">Loading knowledge graph.</p>
+        ) : (
+          <div className="knowledge-graph-summary">
+            <dl>
+              <div>
+                <dt>Nodes</dt>
+                <dd>{knowledgeGraphReport.nodeCount}</dd>
+              </div>
+              <div>
+                <dt>Edges</dt>
+                <dd>{knowledgeGraphReport.edgeCount}</dd>
+              </div>
+            </dl>
+
+            <section>
+              <h2>Strongest Connections</h2>
+              {knowledgeGraphReport.strongestConnections.length === 0 ? (
+                <p>No strong connections yet.</p>
+              ) : (
+                <ul>
+                  {knowledgeGraphReport.strongestConnections.map((edge) => (
+                    <li key={edge.id}>
+                      <p>{edge.explanation}</p>
+                      <span>{formatConfidence(edge.confidenceScore)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <h2>Isolated Nodes</h2>
+              {knowledgeGraphReport.isolatedNodes.length === 0 ? (
+                <p>No isolated nodes detected.</p>
+              ) : (
+                <ul>
+                  {knowledgeGraphReport.isolatedNodes.map((node) => (
+                    <li key={node.id}>
+                      <p>{node.label}</p>
+                      <span>{node.type}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <h2>Contradiction Candidates</h2>
+              {knowledgeGraphReport.contradictionCandidates.length === 0 ? (
+                <p>No contradiction candidates found.</p>
+              ) : (
+                <ul>
+                  {knowledgeGraphReport.contradictionCandidates.map((edge) => (
+                    <li key={edge.id}>
+                      <p>{edge.explanation}</p>
+                      <span>{formatConfidence(edge.confidenceScore)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
         )}
       </section>
 

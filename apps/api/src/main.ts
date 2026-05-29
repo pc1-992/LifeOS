@@ -4,6 +4,7 @@ import {
   SQLiteMemoryRepository
 } from "@lifeos/adapters";
 import {
+  BuildKnowledgeGraphUseCase,
   CaptureContextUseCase,
   CaptureMemoryUseCase,
   DashboardSummaryUseCase,
@@ -96,6 +97,11 @@ const memoryHygiene = new GenerateMemoryHygieneReportUseCase(
   actionHistory
 );
 const memoryConsolidation = new GenerateMemoryConsolidationUseCase(
+  memories,
+  contexts,
+  actionHistory
+);
+const knowledgeGraph = new BuildKnowledgeGraphUseCase(
   memories,
   contexts,
   actionHistory
@@ -241,6 +247,18 @@ const server = createServer(
   if (path === "/memory/stable-truths" && request.method === "GET") {
     const report = await memoryConsolidation.execute();
     sendJson(response, 200, report.stableTruths);
+    return;
+  }
+
+  if (path === "/knowledge-graph" && request.method === "GET") {
+    const graph = await knowledgeGraph.execute();
+    sendJson(response, 200, graph);
+    return;
+  }
+
+  if (path === "/knowledge-graph/report" && request.method === "GET") {
+    const report = await knowledgeGraph.report();
+    sendJson(response, 200, report);
     return;
   }
 

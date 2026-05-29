@@ -2,6 +2,7 @@ export { CaptureMemoryUseCase } from "./capture-memory.js";
 export type { CaptureMemoryInput } from "./capture-memory.js";
 export { CaptureContextUseCase } from "./capture-context.js";
 export type { CaptureContextInput } from "./capture-context.js";
+export { BuildKnowledgeGraphUseCase } from "./build-knowledge-graph.js";
 export { DashboardSummaryUseCase } from "./dashboard-summary.js";
 export { GenerateDailyReflectionUseCase } from "./generate-daily-reflection.js";
 export { GenerateMemoryHygieneReportUseCase } from "./generate-memory-hygiene-report.js";

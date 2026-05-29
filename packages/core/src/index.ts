@@ -10,6 +10,14 @@ export type {
 export type { ContextSignal, ContextSnapshot } from "./context.js";
 export type { DashboardSummary } from "./dashboard.js";
 export type { DailyReflection } from "./daily-reflection.js";
+export type {
+  KnowledgeEdge,
+  KnowledgeEdgeType,
+  KnowledgeGraph,
+  KnowledgeGraphReport,
+  KnowledgeNode,
+  KnowledgeNodeType
+} from "./knowledge-graph.js";
 export type { Memory } from "./memory.js";
 export type {
   ConsolidatedMemory,

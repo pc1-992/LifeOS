@@ -80,6 +80,10 @@ body {
   border-color: #d6d6cc;
 }
 
+.knowledge-graph-panel {
+  border-color: #ccd6d6;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -727,6 +731,72 @@ textarea:focus-visible {
   color: #44505a;
   font-size: 13px;
   line-height: 1.4;
+}
+
+.knowledge-graph-summary {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.knowledge-graph-summary dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.knowledge-graph-summary dl div,
+.knowledge-graph-summary section {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.knowledge-graph-summary dt,
+.knowledge-graph-summary h2 {
+  margin: 0 0 8px;
+  color: #44505a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.knowledge-graph-summary dd {
+  margin: 0;
+  color: #172026;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.knowledge-graph-summary ul {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.knowledge-graph-summary li {
+  display: grid;
+  gap: 8px;
+}
+
+.knowledge-graph-summary p {
+  margin: 0;
+  color: #172026;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.knowledge-graph-summary span {
+  width: fit-content;
+  border: 1px solid #cbd5cc;
+  border-radius: 999px;
+  color: #2f6f6b;
+  background: #f6f7f2;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 8px;
 }
 
 .form-actions {
