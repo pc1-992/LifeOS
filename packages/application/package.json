@@ -15,12 +15,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
-    "test": "echo \"No tests yet for @lifeos/application\""
+    "test": "tsx --test src/*.test.ts"
   },
   "dependencies": {
     "@lifeos/core": "workspace:*"
   },
   "devDependencies": {
+    "tsx": "latest",
     "typescript": "latest"
   }
 }

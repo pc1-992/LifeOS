@@ -26,6 +26,13 @@ import {
 } from "@lifeos/application";
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { config } from "./config.js";
+import {
+  getNumberField,
+  getOptionalNumberField,
+  getStringField,
+  readJsonBody
+} from "./request-validation.js";
 
 type PrivacyScope = "private" | "trusted" | "shareable";
 type ActionCompletionStatus = "completed" | "skipped";
@@ -43,9 +50,9 @@ interface NextBestStepBody {
   supportingSummary: string;
 }
 
-const memories = new SQLiteMemoryRepository();
-const contexts = new SQLiteContextRepository();
-const actionHistory = new SQLiteActionHistoryRepository();
+const memories = new SQLiteMemoryRepository(config.sqliteDatabasePath);
+const contexts = new SQLiteContextRepository(config.sqliteDatabasePath);
+const actionHistory = new SQLiteActionHistoryRepository(config.sqliteDatabasePath);
 const captureMemory = new CaptureMemoryUseCase(memories);
 const captureContext = new CaptureContextUseCase(contexts);
 const suggestRoutine = new SuggestRoutineUseCase(contexts);
@@ -105,12 +112,7 @@ const nextBestStep = new GenerateNextBestStepUseCase(
 );
 const recordActionCompletion = new RecordActionCompletionUseCase(actionHistory);
 
-const port = Number(process.env.PORT ?? 4000);
 const privacyScopes: PrivacyScope[] = ["private", "trusted", "shareable"];
-const allowedOrigins = new Set([
-  "http://localhost:5173",
-  "http://127.0.0.1:5173"
-]);
 
 const server = createServer(
   async (request: IncomingMessage, response: ServerResponse) => {
@@ -254,14 +256,12 @@ const server = createServer(
       const entry = await recordActionCompletion.execute({
         suggestedAction: getNextBestStepBody(body.suggestedAction),
         status: getActionCompletionStatus(body.status),
-        effectivenessScore: getOptionalNumber(body.effectivenessScore)
+        effectivenessScore: getOptionalNumberField(body, "effectivenessScore")
       });
 
       sendJson(response, 201, entry);
     } catch (error) {
-      sendJson(response, 400, {
-        error: error instanceof Error ? error.message : "Invalid request."
-      });
+      sendError(response, 400, error);
     }
     return;
   }
@@ -276,16 +276,14 @@ const server = createServer(
     try {
       const body = await readJsonBody(request);
       const memory = await captureMemory.execute({
-        content: getString(body.content),
+        content: getStringField(body, "content"),
         tags: getTags(body.tags),
         privacyScope: getPrivacyScope(body.privacyScope)
       });
 
       sendJson(response, 201, memory);
     } catch (error) {
-      sendJson(response, 400, {
-        error: error instanceof Error ? error.message : "Invalid request."
-      });
+      sendError(response, 400, error);
     }
     return;
   }
@@ -306,18 +304,16 @@ const server = createServer(
     try {
       const body = await readJsonBody(request);
       const context = await captureContext.execute({
-        mood: getString(body.mood),
-        energyLevel: getNumber(body.energyLevel),
-        focusLevel: getNumber(body.focusLevel),
-        currentSituation: getString(body.currentSituation),
+        mood: getStringField(body, "mood"),
+        energyLevel: getNumberField(body, "energyLevel"),
+        focusLevel: getNumberField(body, "focusLevel"),
+        currentSituation: getStringField(body, "currentSituation"),
         privacyScope: getPrivacyScope(body.privacyScope)
       });
 
       sendJson(response, 201, context);
     } catch (error) {
-      sendJson(response, 400, {
-        error: error instanceof Error ? error.message : "Invalid request."
-      });
+      sendError(response, 400, error);
     }
     return;
   }
@@ -331,13 +327,13 @@ const server = createServer(
     return;
   }
 
-  sendJson(response, 404, { error: "Not found" });
+  sendError(response, 404, new Error("Not found"));
   }
 );
 
-server.listen(port, () => {
-  console.log(`LifeOS API listening on http://localhost:${port}`);
-  console.log(`Health check: http://localhost:${port}/health`);
+server.listen(config.apiPort, () => {
+  console.log(`LifeOS API listening on http://localhost:${config.apiPort}`);
+  console.log(`Health check: http://localhost:${config.apiPort}/health`);
 });
 
 function sendJson(
@@ -349,7 +345,7 @@ function sendJson(
 
   response.writeHead(statusCode, {
     "access-control-allow-origin":
-      typeof origin === "string" && allowedOrigins.has(origin)
+      typeof origin === "string" && config.allowedOrigins.has(origin)
         ? origin
         : "http://localhost:5173",
     "access-control-allow-methods": "GET,POST,OPTIONS",
@@ -360,50 +356,17 @@ function sendJson(
   response.end(payload === null ? undefined : JSON.stringify(payload));
 }
 
-async function readJsonBody(request: IncomingMessage): Promise<Record<string, unknown>> {
-  const chunks: Buffer[] = [];
-
-  for await (const chunk of request) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-
-  const rawBody = Buffer.concat(chunks).toString("utf8");
-
-  if (rawBody.trim().length === 0) {
-    return {};
-  }
-
-  const parsed = JSON.parse(rawBody);
-
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    throw new Error("Request body must be a JSON object.");
-  }
-
-  return parsed as Record<string, unknown>;
-}
-
-function getString(value: unknown): string {
-  return typeof value === "string" ? value : "";
-}
-
-function getNumber(value: unknown): number {
-  if (typeof value === "number") {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    return Number(value);
-  }
-
-  return Number.NaN;
-}
-
-function getOptionalNumber(value: unknown): number | undefined {
-  if (value === undefined || value === null || value === "") {
-    return undefined;
-  }
-
-  return getNumber(value);
+function sendError(
+  response: ServerResponse,
+  statusCode: number,
+  error: unknown
+): void {
+  sendJson(response, statusCode, {
+    error: {
+      message: error instanceof Error ? error.message : "Invalid request.",
+      statusCode
+    }
+  });
 }
 
 function getActionCompletionStatus(value: unknown): ActionCompletionStatus {
@@ -418,12 +381,16 @@ function getNextBestStepBody(value: unknown): NextBestStepBody {
   const suggestedAction = value as Record<string, unknown>;
 
   return {
-    id: getString(suggestedAction.id),
-    title: getString(suggestedAction.title),
-    action: getString(suggestedAction.action),
+    id: getStringFromUnknown(suggestedAction.id),
+    title: getStringFromUnknown(suggestedAction.title),
+    action: getStringFromUnknown(suggestedAction.action),
     reason: getNextBestStepReason(suggestedAction.reason),
-    supportingSummary: getString(suggestedAction.supportingSummary)
+    supportingSummary: getStringFromUnknown(suggestedAction.supportingSummary)
   };
+}
+
+function getStringFromUnknown(value: unknown): string {
+  return typeof value === "string" ? value : "";
 }
 
 function getNextBestStepReason(value: unknown): NextBestStepBody["reason"] {

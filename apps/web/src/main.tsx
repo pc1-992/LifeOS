@@ -256,7 +256,7 @@ interface StableTruth {
   explanation: string;
 }
 
-const apiUrl = "http://localhost:4000";
+const apiUrl = getApiUrl();
 
 function App() {
   const [content, setContent] = React.useState("");
@@ -328,77 +328,60 @@ function App() {
   }, []);
 
   async function loadDashboard() {
-    const response = await fetch(`${apiUrl}/dashboard?scope=trusted`);
-    const summary = (await response.json()) as DashboardSummary;
-    setDashboard(summary);
+    setDashboard(await getJson<DashboardSummary>("/dashboard?scope=trusted"));
   }
 
   async function loadNextBestStep() {
-    const response = await fetch(`${apiUrl}/next-best-step`);
-    const step = (await response.json()) as NextBestStep;
-    setNextBestStep(step);
+    setNextBestStep(await getJson<NextBestStep>("/next-best-step"));
   }
 
   async function loadDailyReflection() {
-    const response = await fetch(`${apiUrl}/daily-reflection`);
-    const reflection = (await response.json()) as DailyReflection;
-    setDailyReflection(reflection);
+    setDailyReflection(await getJson<DailyReflection>("/daily-reflection"));
   }
 
   async function loadActivityFeed() {
-    const response = await fetch(`${apiUrl}/activity-feed`);
-    const feed = (await response.json()) as ActivityFeedItem[];
-    setActivityFeed(feed);
+    setActivityFeed(await getJson<ActivityFeedItem[]>("/activity-feed"));
   }
 
   async function loadPatternInsights() {
-    const response = await fetch(`${apiUrl}/pattern-insights`);
-    const insights = (await response.json()) as PatternInsight[];
-    setPatternInsights(insights);
+    setPatternInsights(await getJson<PatternInsight[]>("/pattern-insights"));
   }
 
   async function loadMemories() {
-    const response = await fetch(`${apiUrl}/memories`);
-    const savedMemories = (await response.json()) as Memory[];
-    setMemories(savedMemories);
+    setMemories(await getJson<Memory[]>("/memories"));
   }
 
   async function loadLatestContext() {
-    const response = await fetch(`${apiUrl}/context/latest`);
-    const savedContext = (await response.json()) as ContextSnapshot | null;
-    setLatestContext(savedContext);
+    setLatestContext(await getJson<ContextSnapshot | null>("/context/latest"));
   }
 
   async function loadRoutineSuggestion() {
-    const response = await fetch(`${apiUrl}/routine-suggestions/latest`);
-    const suggestion = (await response.json()) as RoutineSuggestion;
-    setRoutineSuggestion(suggestion);
+    setRoutineSuggestion(
+      await getJson<RoutineSuggestion>("/routine-suggestions/latest")
+    );
   }
 
   async function loadActionHistory() {
-    const response = await fetch(`${apiUrl}/action-history`);
-    const history = (await response.json()) as ActionHistoryEntry[];
-    setActionHistory(history);
+    setActionHistory(await getJson<ActionHistoryEntry[]>("/action-history"));
   }
 
   async function loadRecommendationFeedback() {
-    const response = await fetch(`${apiUrl}/recommendation-feedback`);
-    const feedback = (await response.json()) as RecommendationFeedback;
-    setRecommendationFeedback(feedback);
+    setRecommendationFeedback(
+      await getJson<RecommendationFeedback>("/recommendation-feedback")
+    );
   }
 
   async function loadOperatingProfile() {
-    const response = await fetch(`${apiUrl}/operating-profile`);
-    const profile = (await response.json()) as PersonalOperatingProfile;
-    setOperatingProfile(profile);
+    setOperatingProfile(
+      await getJson<PersonalOperatingProfile>("/operating-profile")
+    );
   }
 
   async function loadMemoryLayers() {
     const layers = await Promise.all(
       ["working", "episodic", "semantic", "identity", "procedural"].map(
         async (layer) => {
-          const response = await fetch(`${apiUrl}/memory/${layer}`);
-          return (await response.json()) as StructuredMemoryLayer;
+          return await getJson<StructuredMemoryLayer>(`/memory/${layer}`);
         }
       )
     );
@@ -408,9 +391,9 @@ function App() {
 
   async function loadRelevantMemories(query = retrievalQuery) {
     const search = query.length > 0 ? `?query=${encodeURIComponent(query)}` : "";
-    const response = await fetch(`${apiUrl}/memory/retrieve${search}`);
-    const results = (await response.json()) as RetrievalResult[];
-    setRetrievalResults(results);
+    setRetrievalResults(
+      await getJson<RetrievalResult[]>(`/memory/retrieve${search}`)
+    );
   }
 
   async function chooseRetrievalQuery(query: string) {
@@ -419,15 +402,13 @@ function App() {
   }
 
   async function loadMemoryQualityReport() {
-    const response = await fetch(`${apiUrl}/memory/hygiene/report`);
-    const report = (await response.json()) as MemoryQualityReport;
-    setMemoryQualityReport(report);
+    setMemoryQualityReport(
+      await getJson<MemoryQualityReport>("/memory/hygiene/report")
+    );
   }
 
   async function loadStableTruths() {
-    const response = await fetch(`${apiUrl}/memory/stable-truths`);
-    const truths = (await response.json()) as StableTruth[];
-    setStableTruths(truths);
+    setStableTruths(await getJson<StableTruth[]>("/memory/stable-truths"));
   }
 
   async function recordAction(status: ActionCompletionStatus) {
@@ -439,20 +420,13 @@ function App() {
       status === "completed" ? "Saving completion..." : "Saving skip..."
     );
 
-    const response = await fetch(`${apiUrl}/action-history`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({
-        suggestedAction: nextBestStep,
-        status
-      })
+    const response = await postJson("/action-history", {
+      suggestedAction: nextBestStep,
+      status
     });
 
     if (!response.ok) {
-      const result = (await response.json()) as { error?: string };
-      setActionStatus(result.error ?? "Could not save action.");
+      setActionStatus(await getErrorMessage(response, "Could not save action."));
       return;
     }
 
@@ -471,21 +445,14 @@ function App() {
     event.preventDefault();
     setStatus("Saving memory...");
 
-    const response = await fetch(`${apiUrl}/memories`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({
-        content,
-        tags,
-        privacyScope
-      })
+    const response = await postJson("/memories", {
+      content,
+      tags,
+      privacyScope
     });
 
     if (!response.ok) {
-      const result = (await response.json()) as { error?: string };
-      setStatus(result.error ?? "Could not save memory.");
+      setStatus(await getErrorMessage(response, "Could not save memory."));
       return;
     }
 
@@ -512,23 +479,16 @@ function App() {
     event.preventDefault();
     setContextStatus("Saving context...");
 
-    const response = await fetch(`${apiUrl}/context`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({
-        mood,
-        energyLevel,
-        focusLevel,
-        currentSituation,
-        privacyScope: contextPrivacyScope
-      })
+    const response = await postJson("/context", {
+      mood,
+      energyLevel,
+      focusLevel,
+      currentSituation,
+      privacyScope: contextPrivacyScope
     });
 
     if (!response.ok) {
-      const result = (await response.json()) as { error?: string };
-      setContextStatus(result.error ?? "Could not save context.");
+      setContextStatus(await getErrorMessage(response, "Could not save context."));
       return;
     }
 
@@ -614,7 +574,9 @@ function App() {
               >
                 Skipped
               </button>
-              <span role="status">{actionStatus}</span>
+              <span role="status" aria-live="polite">
+                {actionStatus}
+              </span>
             </div>
           </div>
         )}
@@ -774,6 +736,7 @@ function App() {
               className={
                 retrievalQuery === query ? "query-button active" : "query-button"
               }
+              aria-pressed={retrievalQuery === query}
               onClick={() => void chooseRetrievalQuery(query)}
             >
               {query || "current"}
@@ -788,7 +751,9 @@ function App() {
               <li key={`${result.layer}_${result.item.id}`}>
                 <div>
                   <h2>{result.item.title}</h2>
-                  <span>{result.relevance.value}</span>
+                <span aria-label={`Relevance score ${result.relevance.value}`}>
+                  {result.relevance.value}
+                </span>
                 </div>
                 <p>{result.item.summary}</p>
                 <small>{result.layer}</small>
@@ -989,7 +954,9 @@ function App() {
 
           <div className="form-actions">
             <button type="submit">Save context</button>
-            <span role="status">{contextStatus}</span>
+            <span role="status" aria-live="polite">
+              {contextStatus}
+            </span>
           </div>
         </form>
       </section>
@@ -1089,7 +1056,9 @@ function App() {
 
           <div className="form-actions">
             <button type="submit">Save memory</button>
-            <span role="status">{status}</span>
+            <span role="status" aria-live="polite">
+              {status}
+            </span>
           </div>
         </form>
       </section>
@@ -1129,6 +1098,45 @@ function formatTimestamp(timestamp: string): string {
     dateStyle: "short",
     timeStyle: "short"
   }).format(new Date(timestamp));
+}
+
+async function getJson<T>(path: string): Promise<T> {
+  const response = await fetch(`${apiUrl}${path}`);
+
+  return (await response.json()) as T;
+}
+
+async function postJson(path: string, payload: unknown): Promise<Response> {
+  return fetch(`${apiUrl}${path}`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+async function getErrorMessage(
+  response: Response,
+  fallback: string
+): Promise<string> {
+  const result = (await response.json()) as {
+    error?: string | { message?: string };
+  };
+
+  if (typeof result.error === "string") {
+    return result.error;
+  }
+
+  return result.error?.message ?? fallback;
+}
+
+function getApiUrl(): string {
+  const meta = import.meta as ImportMeta & {
+    env?: { VITE_LIFEOS_API_URL?: string };
+  };
+
+  return meta.env?.VITE_LIFEOS_API_URL ?? "http://localhost:4000";
 }
 
 function formatActivityType(type: ActivityFeedItem["type"]): string {
