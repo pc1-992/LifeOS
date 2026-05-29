@@ -17,6 +17,7 @@ export { PrivacyGuard } from "./privacy-guard.js";
 export { RecommendationFeedbackUseCase } from "./recommendation-feedback.js";
 export { RecordActionCompletionUseCase } from "./record-action-completion.js";
 export type { RecordActionCompletionInput } from "./record-action-completion.js";
+export { RetrieveRelevantMemoriesUseCase } from "./retrieve-relevant-memories.js";
 export {
   GenerateEpisodicMemoryUseCase,
   GenerateIdentityMemoryUseCase,

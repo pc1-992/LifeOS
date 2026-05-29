@@ -19,6 +19,7 @@ import {
   GetActivityFeedUseCase,
   RecommendationFeedbackUseCase,
   RecordActionCompletionUseCase,
+  RetrieveRelevantMemoriesUseCase,
   SuggestRoutineUseCase
 } from "@lifeos/application";
 import { createServer } from "node:http";
@@ -72,6 +73,11 @@ const identityMemory = new GenerateIdentityMemoryUseCase(
   actionHistory
 );
 const proceduralMemory = new GenerateProceduralMemoryUseCase(
+  contexts,
+  actionHistory
+);
+const retrieveRelevantMemories = new RetrieveRelevantMemoriesUseCase(
+  memories,
   contexts,
   actionHistory
 );
@@ -185,6 +191,18 @@ const server = createServer(
   if (path === "/memory/procedural" && request.method === "GET") {
     const layer = await proceduralMemory.execute();
     sendJson(response, 200, layer);
+    return;
+  }
+
+  if (path === "/memory/retrieve" && request.method === "GET") {
+    const latestContext = await contexts.latest();
+    const results = await retrieveRelevantMemories.execute({
+      query: requestUrl.searchParams.get("query") ?? "",
+      currentContextKeywords: latestContext === null
+        ? []
+        : getContextKeywords(latestContext.currentSituation)
+    });
+    sendJson(response, 200, results);
     return;
   }
 
@@ -395,6 +413,15 @@ function getTags(value: unknown): string[] {
     .split(",")
     .map((tag) => tag.trim())
     .filter((tag) => tag.length > 0);
+}
+
+function getContextKeywords(value: string): string[] {
+  return value
+    .toLowerCase()
+    .split(/[^a-z0-9_]+/)
+    .map((word) => word.trim())
+    .filter((word) => word.length >= 4)
+    .slice(0, 8);
 }
 
 function getPrivacyScope(value: unknown): PrivacyScope {

@@ -68,6 +68,10 @@ body {
   border-color: #cfd6dc;
 }
 
+.relevant-memory-panel {
+  border-color: #d2d8cf;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -511,6 +515,77 @@ button {
 
 .memory-layer-list small,
 .memory-layer-empty {
+  color: #44505a;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.retrieval-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+.query-button {
+  border: 1px solid #cbd5cc;
+  color: #2f6f6b;
+  background: #ffffff;
+  padding: 9px 12px;
+}
+
+.query-button.active {
+  color: #ffffff;
+  background: #2f6f6b;
+}
+
+.retrieval-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+}
+
+.retrieval-list li {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.retrieval-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.retrieval-list h2 {
+  margin: 0;
+  color: #172026;
+  font-size: 16px;
+}
+
+.retrieval-list span {
+  border: 1px solid #cbd5cc;
+  border-radius: 999px;
+  color: #2f6f6b;
+  background: #f6f7f2;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.retrieval-list p {
+  margin: 0;
+  color: #172026;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.retrieval-list small {
   color: #44505a;
   font-size: 13px;
   line-height: 1.4;

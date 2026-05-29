@@ -11,6 +11,12 @@ export type { ContextSignal, ContextSnapshot } from "./context.js";
 export type { DashboardSummary } from "./dashboard.js";
 export type { DailyReflection } from "./daily-reflection.js";
 export type { Memory } from "./memory.js";
+export type {
+  RelevanceScore,
+  RetrievalQuery,
+  RetrievalReason,
+  RetrievalResult
+} from "./memory-retrieval.js";
 export type { NextBestStep, NextBestStepReason } from "./next-best-step.js";
 export type { PatternInsight, PatternInsightType } from "./pattern-insight.js";
 export type {

@@ -179,6 +179,29 @@ interface StructuredMemoryLayer {
   items: StructuredMemoryItem[];
 }
 
+type RetrievalReason =
+  | "matching_tags"
+  | "matching_context_keywords"
+  | "matching_emotional_state"
+  | "matching_routine_type"
+  | "matching_recommendation_type"
+  | "recency"
+  | "completion_success_rate"
+  | "effectiveness_score";
+
+interface RelevanceScore {
+  value: number;
+  reasons: RetrievalReason[];
+  matchingSignals: string[];
+  explanation: string;
+}
+
+interface RetrievalResult {
+  item: StructuredMemoryItem;
+  layer: StructuredMemoryLayerName;
+  relevance: RelevanceScore;
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -224,6 +247,10 @@ function App() {
   const [memoryLayers, setMemoryLayers] = React.useState<
     StructuredMemoryLayer[]
   >([]);
+  const [retrievalQuery, setRetrievalQuery] = React.useState("");
+  const [retrievalResults, setRetrievalResults] = React.useState<
+    RetrievalResult[]
+  >([]);
 
   React.useEffect(() => {
     void loadDashboard();
@@ -238,6 +265,7 @@ function App() {
     void loadRecommendationFeedback();
     void loadOperatingProfile();
     void loadMemoryLayers();
+    void loadRelevantMemories();
   }, []);
 
   async function loadDashboard() {
@@ -319,6 +347,18 @@ function App() {
     setMemoryLayers(layers);
   }
 
+  async function loadRelevantMemories(query = retrievalQuery) {
+    const search = query.length > 0 ? `?query=${encodeURIComponent(query)}` : "";
+    const response = await fetch(`${apiUrl}/memory/retrieve${search}`);
+    const results = (await response.json()) as RetrievalResult[];
+    setRetrievalResults(results);
+  }
+
+  async function chooseRetrievalQuery(query: string) {
+    setRetrievalQuery(query);
+    await loadRelevantMemories(query);
+  }
+
   async function recordAction(status: ActionCompletionStatus) {
     if (nextBestStep === null) {
       return;
@@ -350,6 +390,7 @@ function App() {
     await loadRecommendationFeedback();
     await loadOperatingProfile();
     await loadMemoryLayers();
+    await loadRelevantMemories();
     await loadNextBestStep();
   }
 
@@ -389,6 +430,7 @@ function App() {
     await loadRecommendationFeedback();
     await loadOperatingProfile();
     await loadMemoryLayers();
+    await loadRelevantMemories();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -432,6 +474,7 @@ function App() {
     await loadRecommendationFeedback();
     await loadOperatingProfile();
     await loadMemoryLayers();
+    await loadRelevantMemories();
   }
 
   return (
@@ -640,6 +683,42 @@ function App() {
               </section>
             ))}
           </div>
+        )}
+      </section>
+
+      <section className="panel relevant-memory-panel">
+        <p className="eyebrow">Relevant Memories</p>
+        <h1>Context retrieval</h1>
+        <div className="retrieval-controls" aria-label="Retrieval queries">
+          {["", "focus", "stress", "energy"].map((query) => (
+            <button
+              key={query || "current"}
+              type="button"
+              className={
+                retrievalQuery === query ? "query-button active" : "query-button"
+              }
+              onClick={() => void chooseRetrievalQuery(query)}
+            >
+              {query || "current"}
+            </button>
+          ))}
+        </div>
+        {retrievalResults.length === 0 ? (
+          <p className="empty-state">No relevant memories found yet.</p>
+        ) : (
+          <ol className="retrieval-list">
+            {retrievalResults.slice(0, 5).map((result) => (
+              <li key={`${result.layer}_${result.item.id}`}>
+                <div>
+                  <h2>{result.item.title}</h2>
+                  <span>{result.relevance.value}</span>
+                </div>
+                <p>{result.item.summary}</p>
+                <small>{result.layer}</small>
+                <small>{result.relevance.explanation}</small>
+              </li>
+            ))}
+          </ol>
         )}
       </section>
 
