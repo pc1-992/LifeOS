@@ -8,9 +8,14 @@ import {
   CaptureMemoryUseCase,
   DashboardSummaryUseCase,
   GenerateDailyReflectionUseCase,
+  GenerateEpisodicMemoryUseCase,
+  GenerateIdentityMemoryUseCase,
   GenerateNextBestStepUseCase,
   GeneratePersonalOperatingProfileUseCase,
   GeneratePatternInsightsUseCase,
+  GenerateProceduralMemoryUseCase,
+  GenerateSemanticMemoryUseCase,
+  GenerateWorkingMemoryUseCase,
   GetActivityFeedUseCase,
   RecommendationFeedbackUseCase,
   RecordActionCompletionUseCase,
@@ -46,6 +51,30 @@ const dailyReflection = new GenerateDailyReflectionUseCase(memories, contexts);
 const activityFeed = new GetActivityFeedUseCase(memories, contexts);
 const patternInsights = new GeneratePatternInsightsUseCase(memories, contexts);
 const recommendationFeedback = new RecommendationFeedbackUseCase(actionHistory);
+const workingMemory = new GenerateWorkingMemoryUseCase(
+  memories,
+  contexts,
+  actionHistory
+);
+const episodicMemory = new GenerateEpisodicMemoryUseCase(
+  memories,
+  contexts,
+  actionHistory
+);
+const semanticMemory = new GenerateSemanticMemoryUseCase(
+  memories,
+  contexts,
+  actionHistory
+);
+const identityMemory = new GenerateIdentityMemoryUseCase(
+  memories,
+  contexts,
+  actionHistory
+);
+const proceduralMemory = new GenerateProceduralMemoryUseCase(
+  contexts,
+  actionHistory
+);
 const operatingProfile = new GeneratePersonalOperatingProfileUseCase(
   memories,
   contexts,
@@ -126,6 +155,36 @@ const server = createServer(
   if (path === "/operating-profile" && request.method === "GET") {
     const profile = await operatingProfile.execute();
     sendJson(response, 200, profile);
+    return;
+  }
+
+  if (path === "/memory/working" && request.method === "GET") {
+    const layer = await workingMemory.execute();
+    sendJson(response, 200, layer);
+    return;
+  }
+
+  if (path === "/memory/episodic" && request.method === "GET") {
+    const layer = await episodicMemory.execute();
+    sendJson(response, 200, layer);
+    return;
+  }
+
+  if (path === "/memory/semantic" && request.method === "GET") {
+    const layer = await semanticMemory.execute();
+    sendJson(response, 200, layer);
+    return;
+  }
+
+  if (path === "/memory/identity" && request.method === "GET") {
+    const layer = await identityMemory.execute();
+    sendJson(response, 200, layer);
+    return;
+  }
+
+  if (path === "/memory/procedural" && request.method === "GET") {
+    const layer = await proceduralMemory.execute();
+    sendJson(response, 200, layer);
     return;
   }
 

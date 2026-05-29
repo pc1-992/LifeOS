@@ -64,6 +64,10 @@ body {
   border-color: #d8d4ca;
 }
 
+.memory-architecture-panel {
+  border-color: #cfd6dc;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -429,6 +433,84 @@ button {
 .dna-summary span {
   display: block;
   margin-top: 8px;
+  color: #44505a;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.memory-layer-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.memory-layer-list section {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.memory-layer-list h2 {
+  margin: 0 0 8px;
+  color: #172026;
+  font-size: 18px;
+}
+
+.memory-layer-list section > p {
+  margin: 0;
+  color: #44505a;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.memory-layer-list ul {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.memory-layer-list li {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid #edf0ea;
+  padding-top: 10px;
+}
+
+.memory-layer-list li div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.memory-layer-list h3 {
+  margin: 0;
+  color: #172026;
+  font-size: 15px;
+}
+
+.memory-layer-list span {
+  border: 1px solid #cbd5cc;
+  border-radius: 999px;
+  color: #2f6f6b;
+  background: #f6f7f2;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 7px;
+}
+
+.memory-layer-list li p {
+  margin: 0;
+  color: #172026;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.memory-layer-list small,
+.memory-layer-empty {
   color: #44505a;
   font-size: 13px;
   line-height: 1.4;

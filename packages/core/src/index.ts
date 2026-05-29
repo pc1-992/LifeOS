@@ -28,5 +28,16 @@ export type {
   RoutineSuggestion,
   RoutineSuggestionReason
 } from "./routine.js";
+export type {
+  EpisodicMemory,
+  IdentityMemory,
+  ProceduralMemory,
+  SemanticMemory,
+  StructuredMemoryItem,
+  StructuredMemoryLayer,
+  StructuredMemoryLayerName,
+  StructuredMemorySourceType,
+  WorkingMemory
+} from "./structured-memory.js";
 export type { PrivacyDecision, PrivacyScope } from "./privacy.js";
 export { canUseInContext } from "./privacy.js";

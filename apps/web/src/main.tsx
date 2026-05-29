@@ -146,6 +146,39 @@ interface PersonalOperatingProfile {
   traits: PersonalOperatingProfileTrait[];
 }
 
+type StructuredMemoryLayerName =
+  | "Working Memory"
+  | "Episodic Memory"
+  | "Semantic Memory"
+  | "Identity Memory"
+  | "Procedural Memory";
+
+type StructuredMemorySourceType =
+  | "context"
+  | "routine"
+  | "recommendation"
+  | "memory"
+  | "reflection"
+  | "action_history"
+  | "timeline_event"
+  | "pattern"
+  | "profile_trait"
+  | "adaptive_rule";
+
+interface StructuredMemoryItem {
+  id: string;
+  title: string;
+  summary: string;
+  sourceType: StructuredMemorySourceType;
+  why: string;
+}
+
+interface StructuredMemoryLayer {
+  layer: StructuredMemoryLayerName;
+  description: string;
+  items: StructuredMemoryItem[];
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -188,6 +221,9 @@ function App() {
     React.useState<RecommendationFeedback | null>(null);
   const [operatingProfile, setOperatingProfile] =
     React.useState<PersonalOperatingProfile | null>(null);
+  const [memoryLayers, setMemoryLayers] = React.useState<
+    StructuredMemoryLayer[]
+  >([]);
 
   React.useEffect(() => {
     void loadDashboard();
@@ -201,6 +237,7 @@ function App() {
     void loadActionHistory();
     void loadRecommendationFeedback();
     void loadOperatingProfile();
+    void loadMemoryLayers();
   }, []);
 
   async function loadDashboard() {
@@ -269,6 +306,19 @@ function App() {
     setOperatingProfile(profile);
   }
 
+  async function loadMemoryLayers() {
+    const layers = await Promise.all(
+      ["working", "episodic", "semantic", "identity", "procedural"].map(
+        async (layer) => {
+          const response = await fetch(`${apiUrl}/memory/${layer}`);
+          return (await response.json()) as StructuredMemoryLayer;
+        }
+      )
+    );
+
+    setMemoryLayers(layers);
+  }
+
   async function recordAction(status: ActionCompletionStatus) {
     if (nextBestStep === null) {
       return;
@@ -299,6 +349,7 @@ function App() {
     await loadActionHistory();
     await loadRecommendationFeedback();
     await loadOperatingProfile();
+    await loadMemoryLayers();
     await loadNextBestStep();
   }
 
@@ -337,6 +388,7 @@ function App() {
     await loadActionHistory();
     await loadRecommendationFeedback();
     await loadOperatingProfile();
+    await loadMemoryLayers();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -379,6 +431,7 @@ function App() {
     await loadActionHistory();
     await loadRecommendationFeedback();
     await loadOperatingProfile();
+    await loadMemoryLayers();
   }
 
   return (
@@ -553,6 +606,39 @@ function App() {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+      </section>
+
+      <section className="panel memory-architecture-panel">
+        <p className="eyebrow">Memory Architecture</p>
+        <h1>Memory OS layers</h1>
+        {memoryLayers.length === 0 ? (
+          <p className="empty-state">Loading memory architecture.</p>
+        ) : (
+          <div className="memory-layer-list">
+            {memoryLayers.map((layer) => (
+              <section key={layer.layer}>
+                <h2>{layer.layer}</h2>
+                <p>{layer.description}</p>
+                {layer.items.length === 0 ? (
+                  <p className="memory-layer-empty">No related items yet.</p>
+                ) : (
+                  <ul>
+                    {layer.items.slice(0, 4).map((item) => (
+                      <li key={item.id}>
+                        <div>
+                          <h3>{item.title}</h3>
+                          <span>{formatSourceType(item.sourceType)}</span>
+                        </div>
+                        <p>{item.summary}</p>
+                        <small>{item.why}</small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ))}
           </div>
         )}
       </section>
@@ -844,4 +930,8 @@ function formatScore(score: number): string {
 
 function formatPercent(value: number): string {
   return `${Math.round(value * 100)}% completed`;
+}
+
+function formatSourceType(type: StructuredMemorySourceType): string {
+  return type.replaceAll("_", " ");
 }
