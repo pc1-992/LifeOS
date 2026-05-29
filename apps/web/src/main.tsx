@@ -238,6 +238,24 @@ interface MemoryQualityReport {
   suggestedCleanupActions: string[];
 }
 
+type ConsolidationReason =
+  | "repeated_successful_behavior"
+  | "recurring_emotional_pattern"
+  | "recurring_focus_pattern"
+  | "recurring_energy_pattern"
+  | "recurring_recommendation_success";
+
+interface StableTruth {
+  id: string;
+  statement: string;
+  reason: ConsolidationReason;
+  confidenceScore: number;
+  evidenceCount: number;
+  sourceMemoryIds: string[];
+  sourceLayers: StructuredMemoryLayerName[];
+  explanation: string;
+}
+
 const apiUrl = "http://localhost:4000";
 
 function App() {
@@ -289,6 +307,7 @@ function App() {
   >([]);
   const [memoryQualityReport, setMemoryQualityReport] =
     React.useState<MemoryQualityReport | null>(null);
+  const [stableTruths, setStableTruths] = React.useState<StableTruth[]>([]);
 
   React.useEffect(() => {
     void loadDashboard();
@@ -305,6 +324,7 @@ function App() {
     void loadMemoryLayers();
     void loadRelevantMemories();
     void loadMemoryQualityReport();
+    void loadStableTruths();
   }, []);
 
   async function loadDashboard() {
@@ -404,6 +424,12 @@ function App() {
     setMemoryQualityReport(report);
   }
 
+  async function loadStableTruths() {
+    const response = await fetch(`${apiUrl}/memory/stable-truths`);
+    const truths = (await response.json()) as StableTruth[];
+    setStableTruths(truths);
+  }
+
   async function recordAction(status: ActionCompletionStatus) {
     if (nextBestStep === null) {
       return;
@@ -437,6 +463,7 @@ function App() {
     await loadMemoryLayers();
     await loadRelevantMemories();
     await loadMemoryQualityReport();
+    await loadStableTruths();
     await loadNextBestStep();
   }
 
@@ -478,6 +505,7 @@ function App() {
     await loadMemoryLayers();
     await loadRelevantMemories();
     await loadMemoryQualityReport();
+    await loadStableTruths();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -523,6 +551,7 @@ function App() {
     await loadMemoryLayers();
     await loadRelevantMemories();
     await loadMemoryQualityReport();
+    await loadStableTruths();
   }
 
   return (
@@ -809,6 +838,27 @@ function App() {
               </ul>
             )}
           </div>
+        )}
+      </section>
+
+      <section className="panel stable-truths-panel">
+        <p className="eyebrow">Stable Truths</p>
+        <h1>Durable knowledge</h1>
+        {stableTruths.length === 0 ? (
+          <p className="empty-state">No stable truths consolidated yet.</p>
+        ) : (
+          <ol className="stable-truth-list">
+            {stableTruths.slice(0, 5).map((truth) => (
+              <li key={truth.id}>
+                <p>{truth.statement}</p>
+                <div>
+                  <span>{formatConfidence(truth.confidenceScore)}</span>
+                  <span>{truth.evidenceCount} evidence</span>
+                </div>
+                <small>{formatSourceLayers(truth.sourceLayers)}</small>
+              </li>
+            ))}
+          </ol>
         )}
       </section>
 
@@ -1103,4 +1153,12 @@ function formatPercent(value: number): string {
 
 function formatSourceType(type: StructuredMemorySourceType): string {
   return type.replaceAll("_", " ");
+}
+
+function formatConfidence(value: number): string {
+  return `${Math.round(value * 100)}% confidence`;
+}
+
+function formatSourceLayers(layers: StructuredMemoryLayerName[]): string {
+  return layers.length === 0 ? "No source layer" : layers.join(", ");
 }

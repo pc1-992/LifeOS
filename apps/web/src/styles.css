@@ -76,6 +76,10 @@ body {
   border-color: #d8d1cf;
 }
 
+.stable-truths-panel {
+  border-color: #d6d6cc;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -669,6 +673,52 @@ button {
   color: #44505a;
   font-size: 15px;
   line-height: 1.5;
+}
+
+.stable-truth-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+}
+
+.stable-truth-list li {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.stable-truth-list p {
+  margin: 0;
+  color: #172026;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.stable-truth-list div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stable-truth-list span {
+  width: fit-content;
+  border: 1px solid #cbd5cc;
+  border-radius: 999px;
+  color: #2f6f6b;
+  background: #f6f7f2;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.stable-truth-list small {
+  color: #44505a;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .form-actions {

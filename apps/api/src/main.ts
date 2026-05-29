@@ -18,6 +18,7 @@ import {
   GenerateSemanticMemoryUseCase,
   GenerateWorkingMemoryUseCase,
   GetActivityFeedUseCase,
+  GenerateMemoryConsolidationUseCase,
   RecommendationFeedbackUseCase,
   RecordActionCompletionUseCase,
   RetrieveRelevantMemoriesUseCase,
@@ -83,6 +84,11 @@ const retrieveRelevantMemories = new RetrieveRelevantMemoriesUseCase(
   actionHistory
 );
 const memoryHygiene = new GenerateMemoryHygieneReportUseCase(
+  memories,
+  contexts,
+  actionHistory
+);
+const memoryConsolidation = new GenerateMemoryConsolidationUseCase(
   memories,
   contexts,
   actionHistory
@@ -221,6 +227,18 @@ const server = createServer(
   if (path === "/memory/hygiene/report" && request.method === "GET") {
     const result = await memoryHygiene.execute();
     sendJson(response, 200, result.report);
+    return;
+  }
+
+  if (path === "/memory/consolidation" && request.method === "GET") {
+    const report = await memoryConsolidation.execute();
+    sendJson(response, 200, report);
+    return;
+  }
+
+  if (path === "/memory/stable-truths" && request.method === "GET") {
+    const report = await memoryConsolidation.execute();
+    sendJson(response, 200, report.stableTruths);
     return;
   }
 
