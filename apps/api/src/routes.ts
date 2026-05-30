@@ -13,6 +13,8 @@ import {
   getNextBestStepBody,
   getPrivacyScope,
   getPrivacyScopeWithDefault,
+  getSignalCategory,
+  getSignalSource,
   getTags
 } from "./route-validation.js";
 
@@ -160,6 +162,31 @@ export async function handleRequest(
     return;
   }
 
+  if (path === "/signals" && request.method === "GET") {
+    sendJson(response, 200, await repositories.personalSignals.findAll());
+    return;
+  }
+
+  if (path === "/signals/today" && request.method === "GET") {
+    sendJson(response, 200, await repositories.personalSignals.findByDate(getToday()));
+    return;
+  }
+
+  if (path === "/signals" && request.method === "POST") {
+    await handleSignalPost(context, request, response);
+    return;
+  }
+
+  if (path === "/daily-activity" && request.method === "GET") {
+    sendJson(response, 200, await useCases.dailyActivity.execute(getToday()));
+    return;
+  }
+
+  if (path === "/signal-insights" && request.method === "GET") {
+    sendJson(response, 200, await useCases.signalInsights.execute(getToday()));
+    return;
+  }
+
   if (path === "/action-history" && request.method === "POST") {
     await handleActionHistoryPost(context, request, response);
     return;
@@ -236,6 +263,31 @@ async function handleMemoryPost(
   }
 }
 
+async function handleSignalPost(
+  context: AppContext,
+  request: IncomingMessage,
+  response: ServerResponse
+): Promise<void> {
+  try {
+    const body = await readJsonBody(request);
+    const signal = await context.useCases.recordPersonalSignal.execute({
+      category: getSignalCategory(body.category),
+      source: getSignalSource(body.source),
+      timestamp: getOptionalDate(body.timestamp),
+      durationMinutes: getOptionalNumberField(body, "durationMinutes"),
+      confidenceScore: getOptionalNumberField(body, "confidenceScore"),
+      privacyScope: getPrivacyScopeWithDefault(body.privacyScope, "private"),
+      rawValueSummary: getStringField(body, "rawValueSummary"),
+      normalizedMeaning: getStringField(body, "normalizedMeaning"),
+      metadata: getMetadata(body.metadata)
+    });
+
+    sendJson(response, 201, signal);
+  } catch (error) {
+    sendError(response, 400, error);
+  }
+}
+
 async function handleContextPost(
   context: AppContext,
   request: IncomingMessage,
@@ -255,4 +307,33 @@ async function handleContextPost(
   } catch (error) {
     sendError(response, 400, error);
   }
+}
+
+function getToday(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getOptionalDate(value: unknown): Date | undefined {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return undefined;
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function getMetadata(
+  value: unknown
+): Record<string, string | number | boolean> | undefined {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return undefined;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter((entry): entry is [
+      string,
+      string | number | boolean
+    ] => ["string", "number", "boolean"].includes(typeof entry[1]))
+  );
 }

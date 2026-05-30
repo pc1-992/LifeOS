@@ -14,7 +14,10 @@ import type {
   RoutineSuggestion,
   StableTruth,
   StructuredMemoryLayer,
-  TemporalReport
+  TemporalReport,
+  DailyActivitySnapshot,
+  PersonalSignal,
+  SignalInsight
 } from "./types.js";
 
 const memoryLayerPaths = [
@@ -99,6 +102,18 @@ export async function getKnowledgeGraphReport(): Promise<KnowledgeGraphReport> {
 
 export async function getTemporalReport(): Promise<TemporalReport> {
   return getJson<TemporalReport>("/temporal-intelligence/report");
+}
+
+export async function getTodaySignals(): Promise<PersonalSignal[]> {
+  return getJson<PersonalSignal[]>("/signals/today");
+}
+
+export async function getDailyActivity(): Promise<DailyActivitySnapshot> {
+  return getJson<DailyActivitySnapshot>("/daily-activity");
+}
+
+export async function getSignalInsights(): Promise<SignalInsight[]> {
+  return getJson<SignalInsight[]>("/signal-insights");
 }
 
 export async function postJson(

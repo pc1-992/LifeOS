@@ -3,6 +3,7 @@ import { getErrorMessage, postJson } from "./api.js";
 import {
   ActionHistoryPanel,
   DashboardPanel,
+  DailySignalsPanel,
   FeedbackPanel,
   InsightsPanel,
   KnowledgeGraphPanel,
@@ -26,10 +27,15 @@ import {
   useFeedbackData,
   useGraphData,
   useMemoryData,
-  useRetrievalData
+  useRetrievalData,
+  useSignalData
 } from "./hooks.js";
 import { getPrivacyLabel, useLanguage } from "./localization.js";
-import type { ActionCompletionStatus, PrivacyScope } from "./types.js";
+import type {
+  ActionCompletionStatus,
+  PrivacyScope,
+  SignalCategory
+} from "./types.js";
 
 export function App() {
   const { language, direction, translations: t, setLanguage } = useLanguage();
@@ -46,6 +52,14 @@ export function App() {
     React.useState<PrivacyScope>("private");
   const [contextStatus, setContextStatus] = React.useState("");
   const [actionStatus, setActionStatus] = React.useState("");
+  const [signalCategory, setSignalCategory] =
+    React.useState<SignalCategory>("home-presence");
+  const [signalSummary, setSignalSummary] = React.useState("");
+  const [signalMeaning, setSignalMeaning] = React.useState("");
+  const [signalDuration, setSignalDuration] = React.useState("");
+  const [signalPrivacyScope, setSignalPrivacyScope] =
+    React.useState<PrivacyScope>("private");
+  const [signalStatus, setSignalStatus] = React.useState("");
 
   const dashboardData = useDashboardData();
   const memoryData = useMemoryData();
@@ -53,6 +67,7 @@ export function App() {
   const retrievalData = useRetrievalData();
   const feedbackData = useFeedbackData();
   const graphData = useGraphData();
+  const signalData = useSignalData();
 
   React.useEffect(() => {
     void loadInitialData();
@@ -65,7 +80,8 @@ export function App() {
       contextData.loadContextData(),
       retrievalData.loadRelevantMemories(),
       feedbackData.loadFeedbackData(),
-      graphData.loadGraphData()
+      graphData.loadGraphData(),
+      signalData.loadSignalData()
     ]);
   }
 
@@ -173,6 +189,33 @@ export function App() {
     await refreshAfterContextChange();
   }
 
+  async function handleSignalSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSignalStatus(t.signals.savingSignal);
+
+    const response = await postJson("/signals", {
+      category: signalCategory,
+      source: "manual",
+      rawValueSummary: signalSummary,
+      normalizedMeaning: signalMeaning,
+      durationMinutes:
+        signalDuration.trim().length === 0 ? undefined : Number(signalDuration),
+      privacyScope: signalPrivacyScope
+    });
+
+    if (!response.ok) {
+      setSignalStatus(await getErrorMessage(response, t.signals.signalSaveError));
+      return;
+    }
+
+    setSignalSummary("");
+    setSignalMeaning("");
+    setSignalDuration("");
+    setSignalPrivacyScope("private");
+    setSignalStatus(t.signals.signalSaved);
+    await signalData.loadSignalData();
+  }
+
   return (
     <main className="shell" dir={language === "he" ? direction : undefined}>
       <LanguageSwitch
@@ -236,6 +279,25 @@ export function App() {
       />
       <TemporalIntelligencePanel
         temporalReport={graphData.temporalReport}
+        language={language}
+        t={t}
+      />
+      <DailySignalsPanel
+        dailyActivity={signalData.dailyActivity}
+        signals={signalData.signals}
+        signalInsights={signalData.signalInsights}
+        signalCategory={signalCategory}
+        signalSummary={signalSummary}
+        signalMeaning={signalMeaning}
+        signalDuration={signalDuration}
+        signalPrivacyScope={signalPrivacyScope}
+        signalStatus={signalStatus}
+        onSignalCategoryChange={setSignalCategory}
+        onSignalSummaryChange={setSignalSummary}
+        onSignalMeaningChange={setSignalMeaning}
+        onSignalDurationChange={setSignalDuration}
+        onSignalPrivacyScopeChange={setSignalPrivacyScope}
+        onSubmitSignal={(event) => void handleSignalSubmit(event)}
         language={language}
         t={t}
       />

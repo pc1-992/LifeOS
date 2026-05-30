@@ -6,12 +6,14 @@ import {
   formatTimestamp,
   getRecentCompletedActions
 } from "../format.js";
+import type React from "react";
 import {
   getActionReasonLabel,
   getActivityTypeLabel,
   getMemoryLayerLabel,
   getPrivacyLabel,
   getRoutineReasonLabel,
+  getSignalCategoryLabel,
   getSourceTypeLabel,
   getTemporalForecastLabel,
   getTemporalMetricLabel,
@@ -34,9 +36,13 @@ import type {
   NextBestStep,
   PatternInsight,
   PersonalOperatingProfile,
+  PersonalSignal,
   RecommendationFeedback,
   RetrievalResult,
   RoutineSuggestion,
+  SignalCategory,
+  SignalInsight,
+  DailyActivitySnapshot,
   StableTruth,
   StructuredMemoryLayer,
   TemporalReport
@@ -757,6 +763,206 @@ export function TimelinePanel({
             </li>
           ))}
         </ol>
+      )}
+    </section>
+  );
+}
+
+export function DailySignalsPanel({
+  dailyActivity,
+  signals,
+  signalInsights,
+  signalCategory,
+  signalSummary,
+  signalMeaning,
+  signalDuration,
+  signalPrivacyScope,
+  signalStatus,
+  onSignalCategoryChange,
+  onSignalSummaryChange,
+  onSignalMeaningChange,
+  onSignalDurationChange,
+  onSignalPrivacyScopeChange,
+  onSubmitSignal,
+  t
+}: LocalizedProps & {
+  dailyActivity: DailyActivitySnapshot | null;
+  signals: PersonalSignal[];
+  signalInsights: SignalInsight[];
+  signalCategory: SignalCategory;
+  signalSummary: string;
+  signalMeaning: string;
+  signalDuration: string;
+  signalPrivacyScope: PersonalSignal["privacyScope"];
+  signalStatus: string;
+  onSignalCategoryChange: (category: SignalCategory) => void;
+  onSignalSummaryChange: (summary: string) => void;
+  onSignalMeaningChange: (meaning: string) => void;
+  onSignalDurationChange: (duration: string) => void;
+  onSignalPrivacyScopeChange: (scope: PersonalSignal["privacyScope"]) => void;
+  onSubmitSignal: (event: React.FormEvent<HTMLFormElement>) => void;
+}) {
+  const categories: SignalCategory[] = [
+    "sleep",
+    "heart-rate",
+    "phone-call",
+    "location-presence",
+    "work-presence",
+    "home-presence",
+    "meeting",
+    "calendar-event",
+    "movement",
+    "routine",
+    "focus",
+    "energy",
+    "stress",
+    "social-interaction"
+  ];
+
+  return (
+    <section className="panel signals-panel">
+      <p className="eyebrow">{t.signals.eyebrow}</p>
+      <h1>{t.signals.title}</h1>
+      <p className="intro">{t.signals.intro}</p>
+
+      <form className="signals-form" onSubmit={onSubmitSignal}>
+        <label>
+          {t.signals.category}
+          <select
+            value={signalCategory}
+            onChange={(event) =>
+              onSignalCategoryChange(event.target.value as SignalCategory)
+            }
+          >
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {getSignalCategoryLabel(t, category)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          {t.signals.summary}
+          <input
+            value={signalSummary}
+            onChange={(event) => onSignalSummaryChange(event.target.value)}
+            placeholder={t.signals.summaryPlaceholder}
+          />
+        </label>
+
+        <label>
+          {t.signals.meaning}
+          <input
+            value={signalMeaning}
+            onChange={(event) => onSignalMeaningChange(event.target.value)}
+            placeholder={t.signals.meaningPlaceholder}
+          />
+        </label>
+
+        <label>
+          {t.signals.duration}
+          <input
+            type="number"
+            min="1"
+            value={signalDuration}
+            onChange={(event) => onSignalDurationChange(event.target.value)}
+          />
+        </label>
+
+        <label>
+          {t.signals.privacy}
+          <select
+            value={signalPrivacyScope}
+            onChange={(event) =>
+              onSignalPrivacyScopeChange(
+                event.target.value as PersonalSignal["privacyScope"]
+              )
+            }
+          >
+            <option value="private">{getPrivacyLabel(t, "private")}</option>
+            <option value="trusted">{getPrivacyLabel(t, "trusted")}</option>
+            <option value="shareable">{getPrivacyLabel(t, "shareable")}</option>
+          </select>
+        </label>
+
+        <div className="form-actions">
+          <button type="submit">{t.signals.save}</button>
+          <span role="status" aria-live="polite">
+            {signalStatus}
+          </span>
+        </div>
+      </form>
+
+      {dailyActivity === null ? (
+        <p className="empty-state">{t.signals.loading}</p>
+      ) : (
+        <div className="signals-summary">
+          <section>
+            <h2>{t.signals.activity}</h2>
+            <p>{dailyActivity.summary}</p>
+            <dl>
+              <div>
+                <dt>{t.signals.rest}</dt>
+                <dd>{dailyActivity.restSignalCount}</dd>
+              </div>
+              <div>
+                <dt>{t.signals.work}</dt>
+                <dd>{dailyActivity.workSignalCount}</dd>
+              </div>
+              <div>
+                <dt>{t.signals.communication}</dt>
+                <dd>{dailyActivity.communicationSignalCount}</dd>
+              </div>
+              <div>
+                <dt>{t.signals.health}</dt>
+                <dd>{dailyActivity.healthSignalCount}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section>
+            <h2>{t.signals.recent}</h2>
+            {signals.length === 0 ? (
+              <p>{t.signals.empty}</p>
+            ) : (
+              <ul>
+                {signals.slice(-5).map((signal) => (
+                  <li key={signal.id}>
+                    <div>
+                      <strong>{getSignalCategoryLabel(t, signal.category)}</strong>
+                      <span>{getPrivacyLabel(t, signal.privacyScope)}</span>
+                    </div>
+                    <p>{signal.normalizedMeaning}</p>
+                    <small>{signal.rawValueSummary}</small>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section>
+            <h2>{t.signals.insights}</h2>
+            {signalInsights.length === 0 ? (
+              <p>{t.signals.noInsights}</p>
+            ) : (
+              <ul>
+                {signalInsights.map((insight) => (
+                  <li key={insight.id}>
+                    <div>
+                      <strong>{insight.title}</strong>
+                      <span>{formatConfidence(insight.confidenceScore, t)}</span>
+                    </div>
+                    <p>{insight.explanation}</p>
+                    <small>
+                      {insight.evidenceCount} {t.common.evidence}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
       )}
     </section>
   );

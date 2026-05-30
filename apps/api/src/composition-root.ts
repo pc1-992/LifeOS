@@ -1,7 +1,8 @@
 import {
   SQLiteActionHistoryRepository,
   SQLiteContextRepository,
-  SQLiteMemoryRepository
+  SQLiteMemoryRepository,
+  SQLitePersonalSignalRepository
 } from "@lifeos/adapters";
 import {
   BuildKnowledgeGraphUseCase,
@@ -12,13 +13,16 @@ import {
   GenerateMemoryConsolidationUseCase,
   GenerateMemoryHygieneReportUseCase,
   GenerateNextBestStepUseCase,
+  GenerateDailyActivitySnapshotUseCase,
   GeneratePersonalOperatingProfileUseCase,
   GeneratePatternInsightsUseCase,
+  GenerateSignalInsightsUseCase,
   GenerateTemporalIntelligenceUseCase,
   GetActivityFeedUseCase,
   MemoryLayerProvider,
   RecommendationFeedbackUseCase,
   RecordActionCompletionUseCase,
+  RecordPersonalSignalUseCase,
   RetrieveRelevantMemoriesUseCase,
   SuggestRoutineUseCase
 } from "@lifeos/application";
@@ -30,13 +34,17 @@ export function createAppContext() {
   const actionHistory = new SQLiteActionHistoryRepository(
     config.sqliteDatabasePath
   );
+  const personalSignals = new SQLitePersonalSignalRepository(
+    config.sqliteDatabasePath
+  );
   const memoryLayers = new MemoryLayerProvider(memories, contexts, actionHistory);
 
   return {
     repositories: {
       memories,
       contexts,
-      actionHistory
+      actionHistory,
+      personalSignals
     },
     useCases: {
       captureMemory: new CaptureMemoryUseCase(memories),
@@ -83,7 +91,10 @@ export function createAppContext() {
         contexts,
         actionHistory
       ),
-      recordActionCompletion: new RecordActionCompletionUseCase(actionHistory)
+      recordActionCompletion: new RecordActionCompletionUseCase(actionHistory),
+      recordPersonalSignal: new RecordPersonalSignalUseCase(personalSignals),
+      dailyActivity: new GenerateDailyActivitySnapshotUseCase(personalSignals),
+      signalInsights: new GenerateSignalInsightsUseCase(personalSignals)
     }
   };
 }

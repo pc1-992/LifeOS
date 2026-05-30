@@ -412,3 +412,66 @@ export interface TemporalReport {
   supportingEvidence: TemporalSignal[];
   summary: string;
 }
+
+export type SignalCategory =
+  | "sleep"
+  | "heart-rate"
+  | "phone-call"
+  | "location-presence"
+  | "work-presence"
+  | "home-presence"
+  | "meeting"
+  | "calendar-event"
+  | "movement"
+  | "routine"
+  | "focus"
+  | "energy"
+  | "stress"
+  | "social-interaction";
+
+export type SignalSource =
+  | "manual"
+  | "system"
+  | "health"
+  | "calendar"
+  | "phone"
+  | "location"
+  | "routine";
+
+export interface PersonalSignal {
+  id: string;
+  category: SignalCategory;
+  source: SignalSource;
+  timestamp: string;
+  durationMinutes?: number;
+  confidenceScore: number;
+  privacyScope: PrivacyScope;
+  rawValueSummary: string;
+  normalizedMeaning: string;
+  metadata?: Record<string, string | number | boolean>;
+}
+
+export interface DailyActivitySnapshot {
+  id: string;
+  date: string;
+  generatedAt: string;
+  signalCount: number;
+  categories: SignalCategory[];
+  summary: string;
+  privacyScope: PrivacyScope;
+  signals: PersonalSignal[];
+  restSignalCount: number;
+  workSignalCount: number;
+  communicationSignalCount: number;
+  healthSignalCount: number;
+}
+
+export interface SignalInsight {
+  id: string;
+  title: string;
+  explanation: string;
+  evidenceCount: number;
+  confidenceScore: number;
+  privacyScope: PrivacyScope;
+  sourceSignalIds: string[];
+}

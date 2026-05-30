@@ -2,6 +2,7 @@ import React from "react";
 import type {
   ActivityFeedItem,
   NextBestStep,
+  PersonalSignal,
   PrivacyScope,
   RoutineSuggestion,
   StructuredMemoryLayerName,
@@ -211,6 +212,32 @@ export const translations = {
       title: "Saved Memories",
       empty: "No memories saved yet."
     },
+    signals: {
+      eyebrow: "Daily Signals",
+      title: "Today's Activity",
+      loading: "Loading daily activity.",
+      intro: "Add privacy-preserving signals manually for now.",
+      category: "Signal type",
+      summary: "Raw value summary",
+      summaryPlaceholder: "home presence, short sleep, low movement",
+      meaning: "Normalized meaning",
+      meaningPlaceholder: "possible rest state, low focus, elevated stress",
+      duration: "Duration minutes",
+      privacy: "Privacy scope",
+      save: "Save signal",
+      recent: "Recent signals",
+      empty: "No signals recorded today.",
+      insights: "Signal Insights",
+      noInsights: "No signal insights yet.",
+      activity: "Today's Activity",
+      rest: "Rest",
+      work: "Work",
+      communication: "Communication",
+      health: "Health",
+      signalSaved: "Signal saved.",
+      savingSignal: "Saving signal...",
+      signalSaveError: "Could not save signal."
+    },
     privacy: {
       private: "private",
       trusted: "trusted",
@@ -288,6 +315,22 @@ export const translations = {
       stable_truth: "stable truth",
       personal_operating_profile: "personal operating profile",
       knowledge_graph: "knowledge graph"
+    },
+    signalCategories: {
+      sleep: "sleep",
+      "heart-rate": "heart rate",
+      "phone-call": "phone call",
+      "location-presence": "location presence",
+      "work-presence": "work presence",
+      "home-presence": "home presence",
+      meeting: "meeting",
+      "calendar-event": "calendar event",
+      movement: "movement",
+      routine: "routine",
+      focus: "focus",
+      energy: "energy",
+      stress: "stress",
+      "social-interaction": "social interaction"
     },
     memoryLayers: {
       "Working Memory": "Working Memory",
@@ -486,6 +529,32 @@ export const translations = {
       title: "זיכרונות שמורים",
       empty: "אין עדיין זיכרונות שמורים."
     },
+    signals: {
+      eyebrow: "אותות יומיים",
+      title: "הפעילות של היום",
+      loading: "טוען פעילות יומית.",
+      intro: "בינתיים מוסיפים אותות ידנית, בצורה שמצמצמת מידע רגיש.",
+      category: "סוג אות",
+      summary: "סיכום ערך גולמי",
+      summaryPlaceholder: "נוכחות בבית, שינה קצרה, מעט תנועה",
+      meaning: "משמעות מנורמלת",
+      meaningPlaceholder: "אפשרות למנוחה, מיקוד נמוך, לחץ מוגבר",
+      duration: "משך בדקות",
+      privacy: "רמת פרטיות",
+      save: "שמור אות",
+      recent: "אותות אחרונים",
+      empty: "לא נשמרו אותות היום.",
+      insights: "תובנות מאותות",
+      noInsights: "אין עדיין תובנות מאותות.",
+      activity: "הפעילות של היום",
+      rest: "מנוחה",
+      work: "עבודה",
+      communication: "תקשורת",
+      health: "בריאות",
+      signalSaved: "האות נשמר.",
+      savingSignal: "שומר אות...",
+      signalSaveError: "לא ניתן לשמור את האות."
+    },
     privacy: {
       private: "פרטי",
       trusted: "אמון",
@@ -563,6 +632,22 @@ export const translations = {
       stable_truth: "אמת יציבה",
       personal_operating_profile: "פרופיל עבודה אישי",
       knowledge_graph: "גרף ידע"
+    },
+    signalCategories: {
+      sleep: "שינה",
+      "heart-rate": "דופק",
+      "phone-call": "שיחת טלפון",
+      "location-presence": "נוכחות במקום",
+      "work-presence": "נוכחות בעבודה",
+      "home-presence": "נוכחות בבית",
+      meeting: "פגישה",
+      "calendar-event": "אירוע ביומן",
+      movement: "תנועה",
+      routine: "שגרה",
+      focus: "מיקוד",
+      energy: "אנרגיה",
+      stress: "לחץ",
+      "social-interaction": "אינטראקציה חברתית"
     },
     memoryLayers: {
       "Working Memory": "זיכרון עבודה",
@@ -703,4 +788,11 @@ export function getTemporalSignalLabel(
   type: TemporalSignalType
 ): string {
   return translationsForLanguage.temporalSignal[type];
+}
+
+export function getSignalCategoryLabel(
+  translationsForLanguage: Translations,
+  category: PersonalSignal["category"]
+): string {
+  return translationsForLanguage.signalCategories[category];
 }

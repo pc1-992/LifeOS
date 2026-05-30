@@ -6,6 +6,29 @@ type NextBestStepReason =
   | "momentum_available"
   | "frequent_stress"
   | "follow_reflection";
+type SignalCategory =
+  | "sleep"
+  | "heart-rate"
+  | "phone-call"
+  | "location-presence"
+  | "work-presence"
+  | "home-presence"
+  | "meeting"
+  | "calendar-event"
+  | "movement"
+  | "routine"
+  | "focus"
+  | "energy"
+  | "stress"
+  | "social-interaction";
+type SignalSource =
+  | "manual"
+  | "system"
+  | "health"
+  | "calendar"
+  | "phone"
+  | "location"
+  | "routine";
 
 export interface NextBestStepBody {
   id: string;
@@ -16,6 +39,31 @@ export interface NextBestStepBody {
 }
 
 const privacyScopes: PrivacyScope[] = ["private", "trusted", "shareable"];
+const signalCategories: SignalCategory[] = [
+  "sleep",
+  "heart-rate",
+  "phone-call",
+  "location-presence",
+  "work-presence",
+  "home-presence",
+  "meeting",
+  "calendar-event",
+  "movement",
+  "routine",
+  "focus",
+  "energy",
+  "stress",
+  "social-interaction"
+];
+const signalSources: SignalSource[] = [
+  "manual",
+  "system",
+  "health",
+  "calendar",
+  "phone",
+  "location",
+  "routine"
+];
 
 export function getActionCompletionStatus(
   value: unknown
@@ -75,6 +123,25 @@ export function getPrivacyScopeWithDefault(
   }
 
   return fallback;
+}
+
+export function getSignalCategory(value: unknown): SignalCategory {
+  if (
+    typeof value === "string" &&
+    signalCategories.includes(value as SignalCategory)
+  ) {
+    return value as SignalCategory;
+  }
+
+  throw new Error("Signal category is required.");
+}
+
+export function getSignalSource(value: unknown): SignalSource {
+  if (typeof value === "string" && signalSources.includes(value as SignalSource)) {
+    return value as SignalSource;
+  }
+
+  return "manual";
 }
 
 function getStringFromUnknown(value: unknown): string {

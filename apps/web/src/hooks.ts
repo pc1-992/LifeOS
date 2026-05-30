@@ -16,7 +16,10 @@ import {
   getRelevantMemories,
   getRoutineSuggestion,
   getStableTruths,
-  getTemporalReport
+  getTemporalReport,
+  getDailyActivity,
+  getSignalInsights,
+  getTodaySignals
 } from "./api.js";
 import type {
   ActionHistoryEntry,
@@ -35,7 +38,10 @@ import type {
   RoutineSuggestion,
   StableTruth,
   StructuredMemoryLayer,
-  TemporalReport
+  TemporalReport,
+  DailyActivitySnapshot,
+  PersonalSignal,
+  SignalInsight
 } from "./types.js";
 
 export function useDashboardData() {
@@ -210,5 +216,33 @@ export function useGraphData() {
     knowledgeGraphReport,
     temporalReport,
     loadGraphData
+  };
+}
+
+export function useSignalData() {
+  const [signals, setSignals] = React.useState<PersonalSignal[]>([]);
+  const [dailyActivity, setDailyActivity] =
+    React.useState<DailyActivitySnapshot | null>(null);
+  const [signalInsights, setSignalInsights] = React.useState<SignalInsight[]>(
+    []
+  );
+
+  async function loadSignalData(): Promise<void> {
+    const [todaySignals, activity, insights] = await Promise.all([
+      getTodaySignals(),
+      getDailyActivity(),
+      getSignalInsights()
+    ]);
+
+    setSignals(todaySignals);
+    setDailyActivity(activity);
+    setSignalInsights(insights);
+  }
+
+  return {
+    signals,
+    dailyActivity,
+    signalInsights,
+    loadSignalData
   };
 }

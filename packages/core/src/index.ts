@@ -48,6 +48,22 @@ export type {
   PersonalOperatingProfileTraitType
 } from "./personal-operating-profile.js";
 export type {
+  CalendarSignal,
+  CommunicationSignal,
+  DailyActivitySnapshot,
+  HealthSignal,
+  HomeSignal,
+  PersonalSignal,
+  PresenceSignal,
+  SignalCategory,
+  SignalConfidence,
+  SignalInsight,
+  SignalPrivacyLevel,
+  SignalSource,
+  SleepSignal,
+  WorkSignal
+} from "./personal-signal.js";
+export type {
   RecommendationFeedback,
   RecommendationScore,
   RoutineSuccessScore

@@ -36,3 +36,17 @@ export const actionHistoryTable = sqliteTable("action_history", {
   timestamp: text("timestamp").notNull(),
   effectivenessScore: integer("effectiveness_score")
 });
+
+export const personalSignalsTable = sqliteTable("personal_signals", {
+  id: text("id").primaryKey(),
+  category: text("category").notNull(),
+  source: text("source").notNull(),
+  timestamp: text("timestamp").notNull(),
+  durationMinutes: integer("duration_minutes"),
+  confidenceScore: integer("confidence_score").notNull(),
+  privacyScope: text("privacy_scope").notNull(),
+  rawValueSummary: text("raw_value_summary").notNull(),
+  normalizedMeaning: text("normalized_meaning").notNull(),
+  metadata: text("metadata", { mode: "json" })
+    .$type<Record<string, string | number | boolean>>()
+});

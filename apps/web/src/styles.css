@@ -114,6 +114,10 @@ body {
   border-color: #d2d6c9;
 }
 
+.signals-panel {
+  border-color: #d4d8cf;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -300,7 +304,8 @@ h1 {
 }
 
 .memory-form,
-.context-form {
+.context-form,
+.signals-form {
   display: grid;
   gap: 18px;
   margin-top: 28px;
@@ -918,6 +923,107 @@ textarea:focus-visible {
   line-height: 1.4;
 }
 
+.signals-summary {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.signals-summary section {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.signals-summary h2 {
+  margin: 0 0 10px;
+  color: #44505a;
+  font-size: 14px;
+}
+
+.signals-summary p {
+  margin: 0;
+  color: #172026;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.signals-summary dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.signals-summary dl div {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.signals-summary dt {
+  color: #44505a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.signals-summary dd {
+  margin: 6px 0 0;
+  color: #172026;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.signals-summary ul {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.signals-summary li {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid #edf0ea;
+  padding-top: 10px;
+}
+
+.signals-summary li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.signals-summary li div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.signals-summary strong {
+  color: #172026;
+  font-size: 15px;
+}
+
+.signals-summary span {
+  width: fit-content;
+  border: 1px solid #cbd5cc;
+  border-radius: 999px;
+  color: #2f6f6b;
+  background: #f6f7f2;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 7px;
+}
+
+.signals-summary small {
+  color: #44505a;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .form-actions {
   display: flex;
   align-items: center;
@@ -1057,6 +1163,10 @@ textarea:focus-visible {
   }
 
   .memory-health-summary dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .signals-summary dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

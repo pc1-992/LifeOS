@@ -2,6 +2,7 @@ import type {
   ActionHistoryEntry,
   ContextSnapshot,
   Memory,
+  PersonalSignal,
   PrivacyScope
 } from "@lifeos/core";
 
@@ -21,4 +22,10 @@ export interface ActionHistoryRepository {
   save(entry: ActionHistoryEntry): Promise<void>;
   findAll(): Promise<ActionHistoryEntry[]>;
   findRecentCompleted(limit: number): Promise<ActionHistoryEntry[]>;
+}
+
+export interface PersonalSignalRepository {
+  save(signal: PersonalSignal): Promise<void>;
+  findAll(): Promise<PersonalSignal[]>;
+  findByDate(date: string): Promise<PersonalSignal[]>;
 }

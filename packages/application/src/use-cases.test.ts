@@ -4,17 +4,21 @@ import type {
   ActionHistoryEntry,
   ContextSnapshot,
   Memory,
+  PersonalSignal,
   PrivacyScope
 } from "@lifeos/core";
 import { CaptureContextUseCase } from "./capture-context.js";
 import { CaptureMemoryUseCase } from "./capture-memory.js";
 import { GenerateMemoryHygieneReportUseCase } from "./generate-memory-hygiene-report.js";
 import { GenerateNextBestStepUseCase } from "./generate-next-best-step.js";
+import { GenerateSignalInsightsUseCase } from "./generate-signal-insights.js";
 import { GenerateTemporalIntelligenceUseCase } from "./generate-temporal-intelligence.js";
+import { RecordPersonalSignalUseCase } from "./record-personal-signal.js";
 import type {
   ActionHistoryRepository,
   ContextRepository,
-  MemoryRepository
+  MemoryRepository,
+  PersonalSignalRepository
 } from "./ports.js";
 
 test("CaptureMemoryUseCase trims and stores a memory", async () => {
@@ -138,6 +142,41 @@ test("GenerateTemporalIntelligenceUseCase detects deterministic temporal movemen
   assert.ok(report.supportingEvidence.length > 0);
 });
 
+test("RecordPersonalSignalUseCase sanitizes sensitive manual signals", async () => {
+  const signals = new TestPersonalSignalRepository();
+  const useCase = new RecordPersonalSignalUseCase(signals);
+
+  const signal = await useCase.execute({
+    category: "phone-call",
+    rawValueSummary: "Call with +1 555 123 4567",
+    normalizedMeaning: "Several calls may increase communication load.",
+    metadata: {
+      contactName: "Do not store",
+      phoneNumber: "+1 555 123 4567",
+      safeCount: 1
+    }
+  });
+
+  assert.equal(signal.privacyScope, "private");
+  assert.doesNotMatch(signal.rawValueSummary, /555/);
+  assert.equal(signal.metadata?.contactName, undefined);
+  assert.equal(signal.metadata?.phoneNumber, undefined);
+  assert.equal(signal.metadata?.safeCount, 1);
+});
+
+test("GenerateSignalInsightsUseCase detects deterministic overload signals", async () => {
+  const signals = new TestPersonalSignalRepository([
+    makeSignal("work", "work-presence", "At work", "work presence"),
+    makeSignal("meeting", "meeting", "Two meetings", "meeting block"),
+    makeSignal("stress", "stress", "High stress", "high stress")
+  ]);
+  const useCase = new GenerateSignalInsightsUseCase(signals);
+
+  const insights = await useCase.execute("2026-01-01");
+
+  assert.ok(insights.some((insight) => insight.id === "signal_insight_overload_risk"));
+});
+
 class TestMemoryRepository implements MemoryRepository {
   constructor(private readonly memories: Memory[] = []) {}
 
@@ -185,6 +224,24 @@ class TestActionHistoryRepository implements ActionHistoryRepository {
     return this.entries
       .filter((entry) => entry.status === "completed")
       .slice(0, limit);
+  }
+}
+
+class TestPersonalSignalRepository implements PersonalSignalRepository {
+  constructor(private readonly signals: PersonalSignal[] = []) {}
+
+  async save(signal: PersonalSignal): Promise<void> {
+    this.signals.push(signal);
+  }
+
+  async findAll(): Promise<PersonalSignal[]> {
+    return this.signals;
+  }
+
+  async findByDate(date: string): Promise<PersonalSignal[]> {
+    return this.signals.filter(
+      (signal) => signal.timestamp.toISOString().slice(0, 10) === date
+    );
   }
 }
 
@@ -256,5 +313,23 @@ function makeAction(
     status,
     timestamp: new Date(timestamp),
     effectivenessScore: status === "completed" ? 5 : 1
+  };
+}
+
+function makeSignal(
+  id: string,
+  category: PersonalSignal["category"],
+  rawValueSummary: string,
+  normalizedMeaning: string
+): PersonalSignal {
+  return {
+    id,
+    category,
+    source: "manual",
+    timestamp: new Date("2026-01-01T10:00:00.000Z"),
+    confidenceScore: 0.8,
+    privacyScope: "private",
+    rawValueSummary,
+    normalizedMeaning
   };
 }
