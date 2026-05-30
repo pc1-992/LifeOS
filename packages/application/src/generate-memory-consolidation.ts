@@ -16,13 +16,8 @@ import type {
   MemoryRepository
 } from "./ports.js";
 import { GeneratePatternInsightsUseCase } from "./generate-pattern-insights.js";
+import { MemoryLayerProvider } from "./memory-layer-provider.js";
 import { RecommendationFeedbackUseCase } from "./recommendation-feedback.js";
-import {
-  GenerateEpisodicMemoryUseCase,
-  GenerateIdentityMemoryUseCase,
-  GenerateProceduralMemoryUseCase,
-  GenerateSemanticMemoryUseCase
-} from "./structured-memory.js";
 
 interface CandidateDraft {
   summary: string;
@@ -35,10 +30,7 @@ interface CandidateDraft {
 }
 
 export class GenerateMemoryConsolidationUseCase {
-  private readonly episodicMemory: GenerateEpisodicMemoryUseCase;
-  private readonly semanticMemory: GenerateSemanticMemoryUseCase;
-  private readonly identityMemory: GenerateIdentityMemoryUseCase;
-  private readonly proceduralMemory: GenerateProceduralMemoryUseCase;
+  private readonly memoryLayers: MemoryLayerProvider;
   private readonly generatePatternInsights: GeneratePatternInsightsUseCase;
   private readonly recommendationFeedback: RecommendationFeedbackUseCase;
 
@@ -47,25 +39,7 @@ export class GenerateMemoryConsolidationUseCase {
     contexts: ContextRepository,
     actionHistory: ActionHistoryRepository
   ) {
-    this.episodicMemory = new GenerateEpisodicMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.semanticMemory = new GenerateSemanticMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.identityMemory = new GenerateIdentityMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.proceduralMemory = new GenerateProceduralMemoryUseCase(
-      contexts,
-      actionHistory
-    );
+    this.memoryLayers = new MemoryLayerProvider(memories, contexts, actionHistory);
     this.generatePatternInsights = new GeneratePatternInsightsUseCase(
       memories,
       contexts
@@ -76,22 +50,20 @@ export class GenerateMemoryConsolidationUseCase {
   }
 
   async execute(): Promise<ConsolidationReport> {
-    const [
-      episodic,
-      semantic,
-      identity,
-      procedural,
-      patternInsights,
-      feedback
-    ] = await Promise.all([
-      this.episodicMemory.execute(),
-      this.semanticMemory.execute(),
-      this.identityMemory.execute(),
-      this.proceduralMemory.execute(),
+    const [layers, patternInsights, feedback] = await Promise.all([
+      this.memoryLayers.getDurableLayers(),
       this.generatePatternInsights.execute(),
       this.recommendationFeedback.execute()
     ]);
-    const layers = [episodic, semantic, identity, procedural];
+
+    return this.executeWithLayers(layers, patternInsights, feedback);
+  }
+
+  executeWithLayers(
+    layers: StructuredMemoryLayer[],
+    patternInsights: PatternInsight[],
+    feedback: RecommendationFeedback
+  ): ConsolidationReport {
     const candidates = toCandidates([
       ...getRepeatedSuccessfulBehaviorCandidates(feedback, layers),
       ...getRecurringRecommendationSuccessCandidates(feedback, layers),

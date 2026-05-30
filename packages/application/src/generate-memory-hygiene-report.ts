@@ -14,12 +14,7 @@ import type {
   ContextRepository,
   MemoryRepository
 } from "./ports.js";
-import {
-  GenerateEpisodicMemoryUseCase,
-  GenerateIdentityMemoryUseCase,
-  GenerateProceduralMemoryUseCase,
-  GenerateSemanticMemoryUseCase
-} from "./structured-memory.js";
+import { MemoryLayerProvider } from "./memory-layer-provider.js";
 
 interface MemoryQualityItem {
   item: StructuredMemoryItem;
@@ -47,44 +42,18 @@ const contradictionPairs = [
 ];
 
 export class GenerateMemoryHygieneReportUseCase {
-  private readonly episodicMemory: GenerateEpisodicMemoryUseCase;
-  private readonly semanticMemory: GenerateSemanticMemoryUseCase;
-  private readonly identityMemory: GenerateIdentityMemoryUseCase;
-  private readonly proceduralMemory: GenerateProceduralMemoryUseCase;
+  private readonly memoryLayers: MemoryLayerProvider;
 
   constructor(
     memories: MemoryRepository,
     contexts: ContextRepository,
     actionHistory: ActionHistoryRepository
   ) {
-    this.episodicMemory = new GenerateEpisodicMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.semanticMemory = new GenerateSemanticMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.identityMemory = new GenerateIdentityMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.proceduralMemory = new GenerateProceduralMemoryUseCase(
-      contexts,
-      actionHistory
-    );
+    this.memoryLayers = new MemoryLayerProvider(memories, contexts, actionHistory);
   }
 
   async execute(): Promise<MemoryHygieneResult> {
-    const layers = await Promise.all([
-      this.episodicMemory.execute(),
-      this.semanticMemory.execute(),
-      this.identityMemory.execute(),
-      this.proceduralMemory.execute()
-    ]);
+    const layers = await this.memoryLayers.getDurableLayers();
     const qualityItems = layers.flatMap(toQualityItems);
     const issues = [
       ...detectDuplicateMemories(layers),

@@ -7,6 +7,7 @@ export { DashboardSummaryUseCase } from "./dashboard-summary.js";
 export { GenerateDailyReflectionUseCase } from "./generate-daily-reflection.js";
 export { GenerateMemoryHygieneReportUseCase } from "./generate-memory-hygiene-report.js";
 export { GenerateMemoryConsolidationUseCase } from "./generate-memory-consolidation.js";
+export { MemoryLayerProvider } from "./memory-layer-provider.js";
 export { GenerateNextBestStepUseCase } from "./generate-next-best-step.js";
 export { GeneratePersonalOperatingProfileUseCase } from "./generate-personal-operating-profile.js";
 export { GeneratePatternInsightsUseCase } from "./generate-pattern-insights.js";

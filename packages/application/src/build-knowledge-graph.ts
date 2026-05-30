@@ -25,6 +25,7 @@ import { GenerateNextBestStepUseCase } from "./generate-next-best-step.js";
 import { GeneratePatternInsightsUseCase } from "./generate-pattern-insights.js";
 import { GeneratePersonalOperatingProfileUseCase } from "./generate-personal-operating-profile.js";
 import { GetActivityFeedUseCase } from "./get-activity-feed.js";
+import { MemoryLayerProvider } from "./memory-layer-provider.js";
 import { RecommendationFeedbackUseCase } from "./recommendation-feedback.js";
 import { SuggestRoutineUseCase } from "./suggest-routine.js";
 
@@ -45,6 +46,7 @@ export class BuildKnowledgeGraphUseCase {
   private readonly activityFeed: GetActivityFeedUseCase;
   private readonly patternInsights: GeneratePatternInsightsUseCase;
   private readonly consolidation: GenerateMemoryConsolidationUseCase;
+  private readonly memoryLayers: MemoryLayerProvider;
   private readonly recommendationFeedback: RecommendationFeedbackUseCase;
   private readonly operatingProfile: GeneratePersonalOperatingProfileUseCase;
   private readonly suggestRoutine: SuggestRoutineUseCase;
@@ -62,6 +64,7 @@ export class BuildKnowledgeGraphUseCase {
       contexts,
       actionHistory
     );
+    this.memoryLayers = new MemoryLayerProvider(memories, contexts, actionHistory);
     this.recommendationFeedback = new RecommendationFeedbackUseCase(actionHistory);
     this.operatingProfile = new GeneratePersonalOperatingProfileUseCase(
       memories,
@@ -158,7 +161,7 @@ export class BuildKnowledgeGraphUseCase {
       contexts,
       activityFeed,
       insights,
-      consolidation,
+      layers,
       feedback,
       profile,
       actionHistory,
@@ -169,13 +172,19 @@ export class BuildKnowledgeGraphUseCase {
       this.contexts.findAll(),
       this.activityFeed.execute(),
       this.patternInsights.execute(),
-      this.consolidation.execute(),
+      this.memoryLayers.getDurableLayers(),
       this.recommendationFeedback.execute(),
       this.operatingProfile.execute(),
       this.actionHistory.findAll(),
       this.suggestRoutine.execute(),
       this.nextBestStep.execute()
     ]);
+
+    const consolidation = this.consolidation.executeWithLayers(
+      layers,
+      insights,
+      feedback
+    );
 
     return {
       memories,

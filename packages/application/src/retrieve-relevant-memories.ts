@@ -11,13 +11,7 @@ import type {
   ContextRepository,
   MemoryRepository
 } from "./ports.js";
-import {
-  GenerateEpisodicMemoryUseCase,
-  GenerateIdentityMemoryUseCase,
-  GenerateProceduralMemoryUseCase,
-  GenerateSemanticMemoryUseCase,
-  GenerateWorkingMemoryUseCase
-} from "./structured-memory.js";
+import { MemoryLayerProvider } from "./memory-layer-provider.js";
 
 interface ScoreDraft {
   value: number;
@@ -40,54 +34,21 @@ const recommendationKeywords = [
 ];
 
 export class RetrieveRelevantMemoriesUseCase {
-  private readonly workingMemory: GenerateWorkingMemoryUseCase;
-  private readonly episodicMemory: GenerateEpisodicMemoryUseCase;
-  private readonly semanticMemory: GenerateSemanticMemoryUseCase;
-  private readonly identityMemory: GenerateIdentityMemoryUseCase;
-  private readonly proceduralMemory: GenerateProceduralMemoryUseCase;
+  private readonly memoryLayers: MemoryLayerProvider;
 
   constructor(
     memories: MemoryRepository,
     contexts: ContextRepository,
     actionHistory: ActionHistoryRepository
   ) {
-    this.workingMemory = new GenerateWorkingMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.episodicMemory = new GenerateEpisodicMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.semanticMemory = new GenerateSemanticMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.identityMemory = new GenerateIdentityMemoryUseCase(
-      memories,
-      contexts,
-      actionHistory
-    );
-    this.proceduralMemory = new GenerateProceduralMemoryUseCase(
-      contexts,
-      actionHistory
-    );
+    this.memoryLayers = new MemoryLayerProvider(memories, contexts, actionHistory);
   }
 
   async execute(input?: Partial<RetrievalQuery>): Promise<RetrievalResult[]> {
     const query = normalizeQuery(input?.query ?? "");
     const queryTerms = getQueryTerms(query);
     const contextKeywords = input?.currentContextKeywords ?? [];
-    const layers = await Promise.all([
-      this.workingMemory.execute(),
-      this.episodicMemory.execute(),
-      this.semanticMemory.execute(),
-      this.identityMemory.execute(),
-      this.proceduralMemory.execute()
-    ]);
+    const layers = await this.memoryLayers.getAllLayers();
 
     return layers
       .flatMap((layer) =>
