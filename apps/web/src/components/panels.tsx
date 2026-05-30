@@ -1,16 +1,26 @@
 import {
-  formatActivityType,
   formatConfidence,
-  formatForecastDirection,
   formatPercent,
-  formatRiskType,
   formatScore,
   formatSourceLayers,
-  formatSourceType,
-  formatTemporalMetric,
   formatTimestamp,
   getRecentCompletedActions
 } from "../format.js";
+import {
+  getActionReasonLabel,
+  getActivityTypeLabel,
+  getMemoryLayerLabel,
+  getPrivacyLabel,
+  getRoutineReasonLabel,
+  getSourceTypeLabel,
+  getTemporalForecastLabel,
+  getTemporalMetricLabel,
+  getTemporalRiskLabel,
+  getTemporalRiskLevelLabel,
+  getTemporalSignalLabel,
+  getTemporalTrendLabel
+} from "../localization.js";
+import type { Language, Translations } from "../localization.js";
 import type {
   ActionCompletionStatus,
   ActionHistoryEntry,
@@ -32,39 +42,75 @@ import type {
   TemporalReport
 } from "../types.js";
 
+interface LocalizedProps {
+  language: Language;
+  t: Translations;
+}
+
+export function LanguageSwitch({
+  language,
+  t,
+  onChangeLanguage
+}: LocalizedProps & {
+  onChangeLanguage: (language: Language) => void;
+}) {
+  return (
+    <div className="language-switch" aria-label={t.language.label}>
+      <span>{t.language.label}</span>
+      <button
+        type="button"
+        className={language === "en" ? "active" : ""}
+        aria-pressed={language === "en"}
+        onClick={() => onChangeLanguage("en")}
+      >
+        {t.language.english}
+      </button>
+      <button
+        type="button"
+        className={language === "he" ? "active" : ""}
+        aria-pressed={language === "he"}
+        onClick={() => onChangeLanguage("he")}
+      >
+        {t.language.hebrew}
+      </button>
+    </div>
+  );
+}
+
 export function DashboardPanel({
-  dashboard
-}: {
+  dashboard,
+  t
+}: LocalizedProps & {
   dashboard: DashboardSummary | null;
 }) {
   return (
     <section className="panel dashboard-panel">
-      <p className="eyebrow">Daily Dashboard</p>
-      <h1>What matters now</h1>
+      <p className="eyebrow">{t.dashboard.eyebrow}</p>
+      <h1>{t.dashboard.title}</h1>
       {dashboard === null ? (
-        <p className="empty-state">Loading today&apos;s summary.</p>
+        <p className="empty-state">{t.dashboard.loading}</p>
       ) : (
         <div className="dashboard-summary">
           <p className="what-now">{dashboard.whatMattersNow}</p>
           <div className="dashboard-grid">
             <section>
-              <h2>Latest Context</h2>
+              <h2>{t.dashboard.latestContext}</h2>
               {dashboard.latestContext === null ? (
-                <p>No context snapshot yet.</p>
+                <p>{t.dashboard.noContext}</p>
               ) : (
                 <p>{dashboard.latestContext.summary}</p>
               )}
             </section>
 
             <section>
-              <h2>Suggested Routine</h2>
+              <h2>{t.dashboard.suggestedRoutine}</h2>
               <p>{dashboard.suggestedRoutine.name}</p>
             </section>
 
             <section>
-              <h2>Latest Memory</h2>
+              <h2>{t.dashboard.latestMemory}</h2>
               {dashboard.latestMemory === null ? (
-                <p>No memory captured yet.</p>
+                <p>{t.dashboard.noMemory}</p>
               ) : (
                 <p>{dashboard.latestMemory.content}</p>
               )}
@@ -79,34 +125,35 @@ export function DashboardPanel({
 export function NextStepPanel({
   nextBestStep,
   actionStatus,
-  onRecordAction
-}: {
+  onRecordAction,
+  t
+}: LocalizedProps & {
   nextBestStep: NextBestStep | null;
   actionStatus: string;
   onRecordAction: (status: ActionCompletionStatus) => void;
 }) {
   return (
     <section className="panel next-step-panel">
-      <p className="eyebrow">Next Best Step</p>
-      <h1>One clear action</h1>
+      <p className="eyebrow">{t.nextStep.eyebrow}</p>
+      <h1>{t.nextStep.title}</h1>
       {nextBestStep === null ? (
-        <p className="empty-state">Loading next step.</p>
+        <p className="empty-state">{t.nextStep.loading}</p>
       ) : (
         <div className="next-step-summary">
           <h2>{nextBestStep.title}</h2>
           <p>{nextBestStep.action}</p>
-          <span>{nextBestStep.reason}</span>
+          <span>{getActionReasonLabel(t, nextBestStep.reason)}</span>
           <p className="supporting-summary">{nextBestStep.supportingSummary}</p>
           <div className="completion-actions">
             <button type="button" onClick={() => onRecordAction("completed")}>
-              Completed
+              {t.nextStep.completed}
             </button>
             <button
               type="button"
               className="secondary-button"
               onClick={() => onRecordAction("skipped")}
             >
-              Skipped
+              {t.nextStep.skipped}
             </button>
             <span role="status" aria-live="polite">
               {actionStatus}
@@ -119,23 +166,25 @@ export function NextStepPanel({
 }
 
 export function ActionHistoryPanel({
-  actionHistory
-}: {
+  actionHistory,
+  language,
+  t
+}: LocalizedProps & {
   actionHistory: ActionHistoryEntry[];
 }) {
   const recentCompletedActions = getRecentCompletedActions(actionHistory);
 
   return (
     <section className="panel action-history-panel">
-      <p className="eyebrow">Action History</p>
-      <h1>Recent completions</h1>
+      <p className="eyebrow">{t.actionHistory.eyebrow}</p>
+      <h1>{t.actionHistory.title}</h1>
       {recentCompletedActions.length === 0 ? (
-        <p className="empty-state">No completed actions yet.</p>
+        <p className="empty-state">{t.actionHistory.empty}</p>
       ) : (
         <ol className="action-history-list">
           {recentCompletedActions.map((entry) => (
             <li key={entry.id}>
-              <time>{formatTimestamp(entry.timestamp)}</time>
+              <time>{formatTimestamp(entry.timestamp, language)}</time>
               <p>{entry.suggestedAction.action}</p>
             </li>
           ))}
@@ -146,31 +195,32 @@ export function ActionHistoryPanel({
 }
 
 export function FeedbackPanel({
-  recommendationFeedback
-}: {
+  recommendationFeedback,
+  t
+}: LocalizedProps & {
   recommendationFeedback: RecommendationFeedback | null;
 }) {
   return (
     <section className="panel feedback-panel">
-      <p className="eyebrow">Recommendation Feedback</p>
-      <h1>What works best</h1>
+      <p className="eyebrow">{t.feedback.eyebrow}</p>
+      <h1>{t.feedback.title}</h1>
       {recommendationFeedback === null ||
       recommendationFeedback.totalActions === 0 ? (
-        <p className="empty-state">Complete or skip actions to build feedback.</p>
+        <p className="empty-state">{t.feedback.empty}</p>
       ) : (
         <div className="feedback-summary">
           <section>
-            <h2>Working Well</h2>
+            <h2>{t.feedback.workingWell}</h2>
             {recommendationFeedback.highlyEffectiveRecommendations.length ===
             0 ? (
-              <p>No clear pattern yet.</p>
+              <p>{t.feedback.noClearPattern}</p>
             ) : (
               <ul>
                 {recommendationFeedback.highlyEffectiveRecommendations.map(
                   (recommendation) => (
                     <li key={recommendation.recommendationKey}>
                       <p>{recommendation.action}</p>
-                      <span>{formatScore(recommendation.score)}</span>
+                      <span>{formatScore(recommendation.score, t)}</span>
                     </li>
                   )
                 )}
@@ -179,17 +229,19 @@ export function FeedbackPanel({
           </section>
 
           <section>
-            <h2>Often Skipped</h2>
+            <h2>{t.feedback.oftenSkipped}</h2>
             {recommendationFeedback.frequentlySkippedRecommendations.length ===
             0 ? (
-              <p>No repeated skips yet.</p>
+              <p>{t.feedback.noRepeatedSkips}</p>
             ) : (
               <ul>
                 {recommendationFeedback.frequentlySkippedRecommendations.map(
                   (recommendation) => (
                     <li key={recommendation.recommendationKey}>
                       <p>{recommendation.action}</p>
-                      <span>{recommendation.skippedCount} skipped</span>
+                      <span>
+                        {recommendation.skippedCount} {t.common.skipped}
+                      </span>
                     </li>
                   )
                 )}
@@ -198,15 +250,15 @@ export function FeedbackPanel({
           </section>
 
           <section>
-            <h2>Successful Routines</h2>
+            <h2>{t.feedback.successfulRoutines}</h2>
             {recommendationFeedback.mostSuccessfulRoutines.length === 0 ? (
-              <p>No routine pattern yet.</p>
+              <p>{t.feedback.noRoutinePattern}</p>
             ) : (
               <ul>
                 {recommendationFeedback.mostSuccessfulRoutines.map((routine) => (
                   <li key={routine.routineName}>
                     <p>{routine.routineName}</p>
-                    <span>{formatPercent(routine.completionRate)}</span>
+                    <span>{formatPercent(routine.completionRate, t)}</span>
                   </li>
                 ))}
               </ul>
@@ -219,23 +271,29 @@ export function FeedbackPanel({
 }
 
 export function OperatingProfilePanel({
-  operatingProfile
-}: {
+  operatingProfile,
+  t
+}: LocalizedProps & {
   operatingProfile: PersonalOperatingProfile | null;
 }) {
   return (
     <section className="panel dna-panel">
-      <p className="eyebrow">LifeOS DNA</p>
-      <h1>Operating profile</h1>
+      <p className="eyebrow">{t.profile.eyebrow}</p>
+      <h1>{t.profile.title}</h1>
       {operatingProfile === null ? (
-        <p className="empty-state">Loading operating profile.</p>
+        <p className="empty-state">{t.profile.loading}</p>
       ) : (
         <div className="dna-summary">
           <p>
-            Based on {operatingProfile.contextSnapshotCount} context snapshot
-            {operatingProfile.contextSnapshotCount === 1 ? "" : "s"} and{" "}
-            {operatingProfile.actionHistoryCount} action record
-            {operatingProfile.actionHistoryCount === 1 ? "" : "s"}.
+            {t.profile.basedOn} {operatingProfile.contextSnapshotCount}{" "}
+            {operatingProfile.contextSnapshotCount === 1
+              ? t.profile.contextSnapshot
+              : t.profile.contextSnapshots}{" "}
+            {t.profile.and} {operatingProfile.actionHistoryCount}{" "}
+            {operatingProfile.actionHistoryCount === 1
+              ? t.profile.actionRecord
+              : t.profile.actionRecords}
+            .
           </p>
           <ul>
             {operatingProfile.traits.map((trait) => (
@@ -253,31 +311,34 @@ export function OperatingProfilePanel({
 }
 
 export function MemoryArchitecturePanel({
-  memoryLayers
-}: {
+  memoryLayers,
+  t
+}: LocalizedProps & {
   memoryLayers: StructuredMemoryLayer[];
 }) {
   return (
     <section className="panel memory-architecture-panel">
-      <p className="eyebrow">Memory Architecture</p>
-      <h1>Memory OS layers</h1>
+      <p className="eyebrow">{t.memoryArchitecture.eyebrow}</p>
+      <h1>{t.memoryArchitecture.title}</h1>
       {memoryLayers.length === 0 ? (
-        <p className="empty-state">Loading memory architecture.</p>
+        <p className="empty-state">{t.memoryArchitecture.loading}</p>
       ) : (
         <div className="memory-layer-list">
           {memoryLayers.map((layer) => (
             <section key={layer.layer}>
-              <h2>{layer.layer}</h2>
+              <h2>{getMemoryLayerLabel(t, layer.layer)}</h2>
               <p>{layer.description}</p>
               {layer.items.length === 0 ? (
-                <p className="memory-layer-empty">No related items yet.</p>
+                <p className="memory-layer-empty">
+                  {t.memoryArchitecture.empty}
+                </p>
               ) : (
                 <ul>
                   {layer.items.slice(0, 4).map((item) => (
                     <li key={item.id}>
                       <div>
                         <h3>{item.title}</h3>
-                        <span>{formatSourceType(item.sourceType)}</span>
+                        <span>{getSourceTypeLabel(t, item.sourceType)}</span>
                       </div>
                       <p>{item.summary}</p>
                       <small>{item.why}</small>
@@ -296,17 +357,25 @@ export function MemoryArchitecturePanel({
 export function RetrievalPanel({
   retrievalQuery,
   retrievalResults,
-  onChooseQuery
-}: {
+  onChooseQuery,
+  t
+}: LocalizedProps & {
   retrievalQuery: string;
   retrievalResults: RetrievalResult[];
   onChooseQuery: (query: string) => void;
 }) {
+  const queryLabels = {
+    "": t.retrieval.queries.current,
+    focus: t.retrieval.queries.focus,
+    stress: t.retrieval.queries.stress,
+    energy: t.retrieval.queries.energy
+  };
+
   return (
     <section className="panel relevant-memory-panel">
-      <p className="eyebrow">Relevant Memories</p>
-      <h1>Context retrieval</h1>
-      <div className="retrieval-controls" aria-label="Retrieval queries">
+      <p className="eyebrow">{t.retrieval.eyebrow}</p>
+      <h1>{t.retrieval.title}</h1>
+      <div className="retrieval-controls" aria-label={t.retrieval.controlsLabel}>
         {["", "focus", "stress", "energy"].map((query) => (
           <button
             key={query || "current"}
@@ -317,24 +386,26 @@ export function RetrievalPanel({
             aria-pressed={retrievalQuery === query}
             onClick={() => onChooseQuery(query)}
           >
-            {query || "current"}
+            {queryLabels[query as keyof typeof queryLabels]}
           </button>
         ))}
       </div>
       {retrievalResults.length === 0 ? (
-        <p className="empty-state">No relevant memories found yet.</p>
+        <p className="empty-state">{t.retrieval.empty}</p>
       ) : (
         <ol className="retrieval-list">
           {retrievalResults.slice(0, 5).map((result) => (
             <li key={`${result.layer}_${result.item.id}`}>
               <div>
                 <h2>{result.item.title}</h2>
-                <span aria-label={`Relevance score ${result.relevance.value}`}>
+                <span
+                  aria-label={`${t.retrieval.relevanceScore} ${result.relevance.value}`}
+                >
                   {result.relevance.value}
                 </span>
               </div>
               <p>{result.item.summary}</p>
-              <small>{result.layer}</small>
+              <small>{getMemoryLayerLabel(t, result.layer)}</small>
               <small>{result.relevance.explanation}</small>
             </li>
           ))}
@@ -345,42 +416,43 @@ export function RetrievalPanel({
 }
 
 export function MemoryHealthPanel({
-  memoryQualityReport
-}: {
+  memoryQualityReport,
+  t
+}: LocalizedProps & {
   memoryQualityReport: MemoryQualityReport | null;
 }) {
   return (
     <section className="panel memory-health-panel">
-      <p className="eyebrow">Memory Health</p>
-      <h1>Quality check</h1>
+      <p className="eyebrow">{t.memoryHealth.eyebrow}</p>
+      <h1>{t.memoryHealth.title}</h1>
       {memoryQualityReport === null ? (
-        <p className="empty-state">Loading memory health.</p>
+        <p className="empty-state">{t.memoryHealth.loading}</p>
       ) : (
         <div className="memory-health-summary">
           <div className="quality-score">
             <span>{memoryQualityReport.qualityScore}</span>
-            <p>memory quality score</p>
+            <p>{t.memoryHealth.qualityScore}</p>
           </div>
           <dl>
             <div>
-              <dt>Active</dt>
+              <dt>{t.memoryHealth.active}</dt>
               <dd>{memoryQualityReport.activeMemoryCount}</dd>
             </div>
             <div>
-              <dt>Stale</dt>
+              <dt>{t.memoryHealth.stale}</dt>
               <dd>{memoryQualityReport.staleMemoryCount}</dd>
             </div>
             <div>
-              <dt>Conflicting</dt>
+              <dt>{t.memoryHealth.conflicting}</dt>
               <dd>{memoryQualityReport.conflictingMemoryCount}</dd>
             </div>
             <div>
-              <dt>Low confidence</dt>
+              <dt>{t.memoryHealth.lowConfidence}</dt>
               <dd>{memoryQualityReport.lowConfidenceMemoryCount}</dd>
             </div>
           </dl>
           {memoryQualityReport.suggestedCleanupActions.length === 0 ? (
-            <p className="memory-health-empty">No cleanup actions suggested.</p>
+            <p className="memory-health-empty">{t.memoryHealth.noCleanup}</p>
           ) : (
             <ul>
               {memoryQualityReport.suggestedCleanupActions.map((action) => (
@@ -395,26 +467,29 @@ export function MemoryHealthPanel({
 }
 
 export function StableTruthsPanel({
-  stableTruths
-}: {
+  stableTruths,
+  t
+}: LocalizedProps & {
   stableTruths: StableTruth[];
 }) {
   return (
     <section className="panel stable-truths-panel">
-      <p className="eyebrow">Stable Truths</p>
-      <h1>Durable knowledge</h1>
+      <p className="eyebrow">{t.stableTruths.eyebrow}</p>
+      <h1>{t.stableTruths.title}</h1>
       {stableTruths.length === 0 ? (
-        <p className="empty-state">No stable truths consolidated yet.</p>
+        <p className="empty-state">{t.stableTruths.empty}</p>
       ) : (
         <ol className="stable-truth-list">
           {stableTruths.slice(0, 5).map((truth) => (
             <li key={truth.id}>
               <p>{truth.statement}</p>
               <div>
-                <span>{formatConfidence(truth.confidenceScore)}</span>
-                <span>{truth.evidenceCount} evidence</span>
+                <span>{formatConfidence(truth.confidenceScore, t)}</span>
+                <span>
+                  {truth.evidenceCount} {t.common.evidence}
+                </span>
               </div>
-              <small>{formatSourceLayers(truth.sourceLayers)}</small>
+              <small>{formatSourceLayers(truth.sourceLayers, t)}</small>
             </li>
           ))}
         </ol>
@@ -424,39 +499,40 @@ export function StableTruthsPanel({
 }
 
 export function KnowledgeGraphPanel({
-  knowledgeGraphReport
-}: {
+  knowledgeGraphReport,
+  t
+}: LocalizedProps & {
   knowledgeGraphReport: KnowledgeGraphReport | null;
 }) {
   return (
     <section className="panel knowledge-graph-panel">
-      <p className="eyebrow">Knowledge Graph</p>
-      <h1>Relationship map</h1>
+      <p className="eyebrow">{t.knowledgeGraph.eyebrow}</p>
+      <h1>{t.knowledgeGraph.title}</h1>
       {knowledgeGraphReport === null ? (
-        <p className="empty-state">Loading knowledge graph.</p>
+        <p className="empty-state">{t.knowledgeGraph.loading}</p>
       ) : (
         <div className="knowledge-graph-summary">
           <dl>
             <div>
-              <dt>Nodes</dt>
+              <dt>{t.knowledgeGraph.nodes}</dt>
               <dd>{knowledgeGraphReport.nodeCount}</dd>
             </div>
             <div>
-              <dt>Edges</dt>
+              <dt>{t.knowledgeGraph.edges}</dt>
               <dd>{knowledgeGraphReport.edgeCount}</dd>
             </div>
           </dl>
 
           <section>
-            <h2>Strongest Connections</h2>
+            <h2>{t.knowledgeGraph.strongestConnections}</h2>
             {knowledgeGraphReport.strongestConnections.length === 0 ? (
-              <p>No strong connections yet.</p>
+              <p>{t.knowledgeGraph.noStrongConnections}</p>
             ) : (
               <ul>
                 {knowledgeGraphReport.strongestConnections.map((edge) => (
                   <li key={edge.id}>
                     <p>{edge.explanation}</p>
-                    <span>{formatConfidence(edge.confidenceScore)}</span>
+                    <span>{formatConfidence(edge.confidenceScore, t)}</span>
                   </li>
                 ))}
               </ul>
@@ -464,9 +540,9 @@ export function KnowledgeGraphPanel({
           </section>
 
           <section>
-            <h2>Isolated Nodes</h2>
+            <h2>{t.knowledgeGraph.isolatedNodes}</h2>
             {knowledgeGraphReport.isolatedNodes.length === 0 ? (
-              <p>No isolated nodes detected.</p>
+              <p>{t.knowledgeGraph.noIsolatedNodes}</p>
             ) : (
               <ul>
                 {knowledgeGraphReport.isolatedNodes.map((node) => (
@@ -480,15 +556,15 @@ export function KnowledgeGraphPanel({
           </section>
 
           <section>
-            <h2>Contradiction Candidates</h2>
+            <h2>{t.knowledgeGraph.contradictionCandidates}</h2>
             {knowledgeGraphReport.contradictionCandidates.length === 0 ? (
-              <p>No contradiction candidates found.</p>
+              <p>{t.knowledgeGraph.noContradictions}</p>
             ) : (
               <ul>
                 {knowledgeGraphReport.contradictionCandidates.map((edge) => (
                   <li key={edge.id}>
                     <p>{edge.explanation}</p>
-                    <span>{formatConfidence(edge.confidenceScore)}</span>
+                    <span>{formatConfidence(edge.confidenceScore, t)}</span>
                   </li>
                 ))}
               </ul>
@@ -501,34 +577,35 @@ export function KnowledgeGraphPanel({
 }
 
 export function TemporalIntelligencePanel({
-  temporalReport
-}: {
+  temporalReport,
+  t
+}: LocalizedProps & {
   temporalReport: TemporalReport | null;
 }) {
   return (
     <section className="panel temporal-panel">
-      <p className="eyebrow">Temporal Intelligence</p>
-      <h1>Change over time</h1>
+      <p className="eyebrow">{t.temporal.eyebrow}</p>
+      <h1>{t.temporal.title}</h1>
       {temporalReport === null ? (
-        <p className="empty-state">Loading temporal intelligence.</p>
+        <p className="empty-state">{t.temporal.loading}</p>
       ) : (
         <div className="temporal-summary">
           <p>{temporalReport.summary}</p>
           <small>{temporalReport.timeWindowAnalyzed.label}</small>
 
           <section>
-            <h2>Trends</h2>
+            <h2>{t.temporal.trends}</h2>
             <ul>
               {temporalReport.trends.map((trend) => (
                 <li key={trend.id}>
                   <div>
-                    <strong>{formatTemporalMetric(trend.metric)}</strong>
-                    <span>{trend.direction}</span>
+                    <strong>{getTemporalMetricLabel(t, trend.metric)}</strong>
+                    <span>{getTemporalTrendLabel(t, trend.direction)}</span>
                   </div>
                   <p>{trend.explanation}</p>
                   <small>
-                    {trend.evidenceCount} evidence ·{" "}
-                    {formatConfidence(trend.confidenceScore)}
+                    {trend.evidenceCount} {t.common.evidence} /{" "}
+                    {formatConfidence(trend.confidenceScore, t)}
                   </small>
                 </li>
               ))}
@@ -536,18 +613,18 @@ export function TemporalIntelligencePanel({
           </section>
 
           <section>
-            <h2>Risks</h2>
+            <h2>{t.temporal.risks}</h2>
             <ul>
               {temporalReport.risks.map((risk) => (
                 <li key={risk.id}>
                   <div>
-                    <strong>{formatRiskType(risk.type)}</strong>
-                    <span>{risk.level}</span>
+                    <strong>{getTemporalRiskLabel(t, risk.type)}</strong>
+                    <span>{getTemporalRiskLevelLabel(t, risk.level)}</span>
                   </div>
                   <p>{risk.explanation}</p>
                   <small>
-                    {risk.evidenceCount} evidence ·{" "}
-                    {formatConfidence(risk.confidenceScore)}
+                    {risk.evidenceCount} {t.common.evidence} /{" "}
+                    {formatConfidence(risk.confidenceScore, t)}
                   </small>
                 </li>
               ))}
@@ -555,18 +632,20 @@ export function TemporalIntelligencePanel({
           </section>
 
           <section>
-            <h2>Forecasts</h2>
+            <h2>{t.temporal.forecasts}</h2>
             <ul>
               {temporalReport.forecasts.map((forecast) => (
                 <li key={forecast.id}>
                   <div>
-                    <strong>{formatTemporalMetric(forecast.metric)}</strong>
-                    <span>{formatForecastDirection(forecast.direction)}</span>
+                    <strong>{getTemporalMetricLabel(t, forecast.metric)}</strong>
+                    <span>
+                      {getTemporalForecastLabel(t, forecast.direction)}
+                    </span>
                   </div>
                   <p>{forecast.explanation}</p>
                   <small>
-                    {forecast.evidenceCount} evidence ·{" "}
-                    {formatConfidence(forecast.confidenceScore)}
+                    {forecast.evidenceCount} {t.common.evidence} /{" "}
+                    {formatConfidence(forecast.confidenceScore, t)}
                   </small>
                 </li>
               ))}
@@ -574,13 +653,13 @@ export function TemporalIntelligencePanel({
           </section>
 
           <section>
-            <h2>Supporting Evidence</h2>
+            <h2>{t.temporal.supportingEvidence}</h2>
             <ul>
               {temporalReport.supportingEvidence.slice(0, 5).map((signal) => (
                 <li key={signal.id}>
                   <div>
                     <strong>{signal.label}</strong>
-                    <span>{signal.type.replaceAll("_", " ")}</span>
+                    <span>{getTemporalSignalLabel(t, signal.type)}</span>
                   </div>
                   <p>{signal.summary}</p>
                 </li>
@@ -594,32 +673,33 @@ export function TemporalIntelligencePanel({
 }
 
 export function ReflectionPanel({
-  dailyReflection
-}: {
+  dailyReflection,
+  t
+}: LocalizedProps & {
   dailyReflection: DailyReflection | null;
 }) {
   return (
     <section className="panel reflection-panel">
-      <p className="eyebrow">Daily Reflection</p>
-      <h1>Session review</h1>
+      <p className="eyebrow">{t.reflection.eyebrow}</p>
+      <h1>{t.reflection.title}</h1>
       {dailyReflection === null ? (
-        <p className="empty-state">Loading reflection.</p>
+        <p className="empty-state">{t.reflection.loading}</p>
       ) : (
         <div className="reflection-summary">
           <section>
-            <h2>Today&apos;s Emotional State</h2>
+            <h2>{t.reflection.emotionalState}</h2>
             <p>{dailyReflection.emotionalState}</p>
           </section>
           <section>
-            <h2>What Mattered Most</h2>
+            <h2>{t.reflection.whatMatteredMost}</h2>
             <p>{dailyReflection.whatMatteredMost}</p>
           </section>
           <section>
-            <h2>Suggested Next Step</h2>
+            <h2>{t.reflection.suggestedNextStep}</h2>
             <p>{dailyReflection.suggestedNextStep}</p>
           </section>
           <section>
-            <h2>Current Routine Recommendation</h2>
+            <h2>{t.reflection.currentRoutineRecommendation}</h2>
             <p>{dailyReflection.currentRoutineRecommendation.name}</p>
           </section>
         </div>
@@ -629,16 +709,17 @@ export function ReflectionPanel({
 }
 
 export function InsightsPanel({
-  patternInsights
-}: {
+  patternInsights,
+  t
+}: LocalizedProps & {
   patternInsights: PatternInsight[];
 }) {
   return (
     <section className="panel insights-panel">
-      <p className="eyebrow">Insights</p>
-      <h1>Patterns</h1>
+      <p className="eyebrow">{t.insights.eyebrow}</p>
+      <h1>{t.insights.title}</h1>
       {patternInsights.length === 0 ? (
-        <p className="empty-state">No insights yet.</p>
+        <p className="empty-state">{t.insights.empty}</p>
       ) : (
         <ul className="insights-list">
           {patternInsights.map((insight) => (
@@ -654,22 +735,24 @@ export function InsightsPanel({
 }
 
 export function TimelinePanel({
-  activityFeed
-}: {
+  activityFeed,
+  language,
+  t
+}: LocalizedProps & {
   activityFeed: ActivityFeedItem[];
 }) {
   return (
     <section className="panel timeline-panel">
-      <p className="eyebrow">Activity Feed</p>
-      <h1>Timeline</h1>
+      <p className="eyebrow">{t.timeline.eyebrow}</p>
+      <h1>{t.timeline.title}</h1>
       {activityFeed.length === 0 ? (
-        <p className="empty-state">No activity yet.</p>
+        <p className="empty-state">{t.timeline.empty}</p>
       ) : (
         <ol className="timeline-list">
           {activityFeed.map((item) => (
             <li key={item.id}>
-              <time>{formatTimestamp(item.timestamp)}</time>
-              <span>{formatActivityType(item.type)}</span>
+              <time>{formatTimestamp(item.timestamp, language)}</time>
+              <span>{getActivityTypeLabel(t, item.type)}</span>
               <p>{item.summary}</p>
             </li>
           ))}
@@ -680,34 +763,35 @@ export function TimelinePanel({
 }
 
 export function LatestContextPanel({
-  latestContext
-}: {
+  latestContext,
+  t
+}: LocalizedProps & {
   latestContext: ContextSnapshot | null;
 }) {
   return (
     <section className="panel context-latest">
-      <h2>Latest Context</h2>
+      <h2>{t.latestContext.title}</h2>
       {latestContext === null ? (
-        <p className="empty-state">No context snapshot saved yet.</p>
+        <p className="empty-state">{t.latestContext.empty}</p>
       ) : (
         <div className="context-summary">
           <p>{latestContext.summary}</p>
           <dl>
             <div>
-              <dt>Mood</dt>
+              <dt>{t.latestContext.mood}</dt>
               <dd>{latestContext.mood}</dd>
             </div>
             <div>
-              <dt>Energy</dt>
+              <dt>{t.latestContext.energy}</dt>
               <dd>{latestContext.energyLevel}/10</dd>
             </div>
             <div>
-              <dt>Focus</dt>
+              <dt>{t.latestContext.focus}</dt>
               <dd>{latestContext.focusLevel}/10</dd>
             </div>
             <div>
-              <dt>Privacy</dt>
-              <dd>{latestContext.privacyScope}</dd>
+              <dt>{t.latestContext.privacy}</dt>
+              <dd>{getPrivacyLabel(t, latestContext.privacyScope)}</dd>
             </div>
           </dl>
           <p className="situation">{latestContext.currentSituation}</p>
@@ -718,15 +802,16 @@ export function LatestContextPanel({
 }
 
 export function RoutineSuggestionPanel({
-  routineSuggestion
-}: {
+  routineSuggestion,
+  t
+}: LocalizedProps & {
   routineSuggestion: RoutineSuggestion | null;
 }) {
   return (
     <section className="panel routine-suggestion">
-      <h2>Suggested Routine</h2>
+      <h2>{t.routine.title}</h2>
       {routineSuggestion === null ? (
-        <p className="empty-state">No routine suggestion loaded yet.</p>
+        <p className="empty-state">{t.routine.empty}</p>
       ) : (
         <div className="routine-summary">
           <p className="routine-name">{routineSuggestion.name}</p>
@@ -737,8 +822,8 @@ export function RoutineSuggestionPanel({
             ))}
           </ol>
           <div className="memory-meta">
-            <span>{routineSuggestion.reason}</span>
-            <span>{routineSuggestion.privacyScope}</span>
+            <span>{getRoutineReasonLabel(t, routineSuggestion.reason)}</span>
+            <span>{getPrivacyLabel(t, routineSuggestion.privacyScope)}</span>
           </div>
         </div>
       )}
@@ -746,19 +831,24 @@ export function RoutineSuggestionPanel({
   );
 }
 
-export function MemoryListPanel({ memories }: { memories: Memory[] }) {
+export function MemoryListPanel({
+  memories,
+  t
+}: LocalizedProps & {
+  memories: Memory[];
+}) {
   return (
     <section className="panel memory-list">
-      <h2>Saved Memories</h2>
+      <h2>{t.memoryList.title}</h2>
       {memories.length === 0 ? (
-        <p className="empty-state">No memories saved yet.</p>
+        <p className="empty-state">{t.memoryList.empty}</p>
       ) : (
         <ul>
           {memories.map((memory) => (
             <li key={memory.id}>
               <p>{memory.content}</p>
               <div className="memory-meta">
-                <span>{memory.privacyScope}</span>
+                <span>{getPrivacyLabel(t, memory.privacyScope)}</span>
                 {memory.tags.map((tag) => (
                   <span key={tag}>{tag}</span>
                 ))}

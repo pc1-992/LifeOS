@@ -6,6 +6,7 @@ import {
   FeedbackPanel,
   InsightsPanel,
   KnowledgeGraphPanel,
+  LanguageSwitch,
   LatestContextPanel,
   MemoryArchitecturePanel,
   MemoryHealthPanel,
@@ -27,9 +28,11 @@ import {
   useMemoryData,
   useRetrievalData
 } from "./hooks.js";
+import { getPrivacyLabel, useLanguage } from "./localization.js";
 import type { ActionCompletionStatus, PrivacyScope } from "./types.js";
 
 export function App() {
+  const { language, direction, translations: t, setLanguage } = useLanguage();
   const [content, setContent] = React.useState("");
   const [tags, setTags] = React.useState("");
   const [privacyScope, setPrivacyScope] =
@@ -103,7 +106,7 @@ export function App() {
     }
 
     setActionStatus(
-      status === "completed" ? "Saving completion..." : "Saving skip..."
+      status === "completed" ? t.status.savingCompletion : t.status.savingSkip
     );
 
     const response = await postJson("/action-history", {
@@ -112,17 +115,19 @@ export function App() {
     });
 
     if (!response.ok) {
-      setActionStatus(await getErrorMessage(response, "Could not save action."));
+      setActionStatus(await getErrorMessage(response, t.status.actionSaveError));
       return;
     }
 
-    setActionStatus(status === "completed" ? "Marked completed." : "Skipped.");
+    setActionStatus(
+      status === "completed" ? t.status.markedCompleted : t.status.markedSkipped
+    );
     await refreshAfterActionChange();
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus("Saving memory...");
+    setStatus(t.status.savingMemory);
 
     const response = await postJson("/memories", {
       content,
@@ -131,20 +136,20 @@ export function App() {
     });
 
     if (!response.ok) {
-      setStatus(await getErrorMessage(response, "Could not save memory."));
+      setStatus(await getErrorMessage(response, t.status.memorySaveError));
       return;
     }
 
     setContent("");
     setTags("");
     setPrivacyScope("private");
-    setStatus("Memory saved.");
+    setStatus(t.status.memorySaved);
     await refreshAfterMemoryChange();
   }
 
   async function handleContextSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setContextStatus("Saving context...");
+    setContextStatus(t.status.savingContext);
 
     const response = await postJson("/context", {
       mood,
@@ -155,7 +160,7 @@ export function App() {
     });
 
     if (!response.ok) {
-      setContextStatus(await getErrorMessage(response, "Could not save context."));
+      setContextStatus(await getErrorMessage(response, t.status.contextSaveError));
       return;
     }
 
@@ -164,60 +169,109 @@ export function App() {
     setFocusLevel(5);
     setCurrentSituation("");
     setContextPrivacyScope("private");
-    setContextStatus("Context saved.");
+    setContextStatus(t.status.contextSaved);
     await refreshAfterContextChange();
   }
 
   return (
-    <main className="shell">
-      <DashboardPanel dashboard={dashboardData.dashboard} />
+    <main className="shell" dir={language === "he" ? direction : undefined}>
+      <LanguageSwitch
+        language={language}
+        t={t}
+        onChangeLanguage={setLanguage}
+      />
+      <DashboardPanel
+        dashboard={dashboardData.dashboard}
+        language={language}
+        t={t}
+      />
       <NextStepPanel
         nextBestStep={dashboardData.nextBestStep}
         actionStatus={actionStatus}
         onRecordAction={(nextStatus) => void recordAction(nextStatus)}
+        language={language}
+        t={t}
       />
-      <ActionHistoryPanel actionHistory={feedbackData.actionHistory} />
+      <ActionHistoryPanel
+        actionHistory={feedbackData.actionHistory}
+        language={language}
+        t={t}
+      />
       <FeedbackPanel
         recommendationFeedback={feedbackData.recommendationFeedback}
+        language={language}
+        t={t}
       />
-      <OperatingProfilePanel operatingProfile={feedbackData.operatingProfile} />
-      <MemoryArchitecturePanel memoryLayers={memoryData.memoryLayers} />
+      <OperatingProfilePanel
+        operatingProfile={feedbackData.operatingProfile}
+        language={language}
+        t={t}
+      />
+      <MemoryArchitecturePanel
+        memoryLayers={memoryData.memoryLayers}
+        language={language}
+        t={t}
+      />
       <RetrievalPanel
         retrievalQuery={retrievalData.retrievalQuery}
         retrievalResults={retrievalData.retrievalResults}
         onChooseQuery={(query) => void retrievalData.chooseRetrievalQuery(query)}
+        language={language}
+        t={t}
       />
       <MemoryHealthPanel
         memoryQualityReport={memoryData.memoryQualityReport}
+        language={language}
+        t={t}
       />
-      <StableTruthsPanel stableTruths={memoryData.stableTruths} />
+      <StableTruthsPanel
+        stableTruths={memoryData.stableTruths}
+        language={language}
+        t={t}
+      />
       <KnowledgeGraphPanel
         knowledgeGraphReport={graphData.knowledgeGraphReport}
+        language={language}
+        t={t}
       />
-      <TemporalIntelligencePanel temporalReport={graphData.temporalReport} />
-      <ReflectionPanel dailyReflection={dashboardData.dailyReflection} />
-      <InsightsPanel patternInsights={dashboardData.patternInsights} />
-      <TimelinePanel activityFeed={dashboardData.activityFeed} />
+      <TemporalIntelligencePanel
+        temporalReport={graphData.temporalReport}
+        language={language}
+        t={t}
+      />
+      <ReflectionPanel
+        dailyReflection={dashboardData.dailyReflection}
+        language={language}
+        t={t}
+      />
+      <InsightsPanel
+        patternInsights={dashboardData.patternInsights}
+        language={language}
+        t={t}
+      />
+      <TimelinePanel
+        activityFeed={dashboardData.activityFeed}
+        language={language}
+        t={t}
+      />
 
       <section className="panel">
-        <p className="eyebrow">LifeOS</p>
-        <h1>Context Snapshot</h1>
-        <p className="intro">
-          Capture the current moment in a small, private-by-default snapshot.
-        </p>
+        <p className="eyebrow">{t.contextCapture.eyebrow}</p>
+        <h1>{t.contextCapture.title}</h1>
+        <p className="intro">{t.contextCapture.intro}</p>
 
         <form className="context-form" onSubmit={handleContextSubmit}>
           <label>
-            Mood
+            {t.contextCapture.mood}
             <input
               value={mood}
               onChange={(event) => setMood(event.target.value)}
-              placeholder="calm, tired, focused"
+              placeholder={t.contextCapture.moodPlaceholder}
             />
           </label>
 
           <label>
-            Energy level
+            {t.contextCapture.energy}
             <input
               type="number"
               min="1"
@@ -228,7 +282,7 @@ export function App() {
           </label>
 
           <label>
-            Focus level
+            {t.contextCapture.focus}
             <input
               type="number"
               min="1"
@@ -239,31 +293,31 @@ export function App() {
           </label>
 
           <label>
-            Current situation
+            {t.contextCapture.situation}
             <textarea
               value={currentSituation}
               onChange={(event) => setCurrentSituation(event.target.value)}
-              placeholder="What is happening right now?"
+              placeholder={t.contextCapture.situationPlaceholder}
               rows={4}
             />
           </label>
 
           <label>
-            Privacy scope
+            {t.contextCapture.privacy}
             <select
               value={contextPrivacyScope}
               onChange={(event) =>
                 setContextPrivacyScope(event.target.value as PrivacyScope)
               }
             >
-              <option value="private">private</option>
-              <option value="trusted">trusted</option>
-              <option value="shareable">shareable</option>
+              <option value="private">{getPrivacyLabel(t, "private")}</option>
+              <option value="trusted">{getPrivacyLabel(t, "trusted")}</option>
+              <option value="shareable">{getPrivacyLabel(t, "shareable")}</option>
             </select>
           </label>
 
           <div className="form-actions">
-            <button type="submit">Save context</button>
+            <button type="submit">{t.contextCapture.save}</button>
             <span role="status" aria-live="polite">
               {contextStatus}
             </span>
@@ -271,55 +325,58 @@ export function App() {
         </form>
       </section>
 
-      <LatestContextPanel latestContext={contextData.latestContext} />
+      <LatestContextPanel
+        latestContext={contextData.latestContext}
+        language={language}
+        t={t}
+      />
       <RoutineSuggestionPanel
         routineSuggestion={contextData.routineSuggestion}
+        language={language}
+        t={t}
       />
 
       <section className="panel">
-        <p className="eyebrow">LifeOS</p>
-        <h1>Memory Capture</h1>
-        <p className="intro">
-          Capture a simple memory with visible privacy context. This first slice
-          keeps storage temporary and local to the running API process.
-        </p>
+        <p className="eyebrow">{t.memoryCapture.eyebrow}</p>
+        <h1>{t.memoryCapture.title}</h1>
+        <p className="intro">{t.memoryCapture.intro}</p>
 
         <form className="memory-form" onSubmit={handleSubmit}>
           <label>
-            Memory
+            {t.memoryCapture.memory}
             <textarea
               value={content}
               onChange={(event) => setContent(event.target.value)}
-              placeholder="What should LifeOS remember?"
+              placeholder={t.memoryCapture.memoryPlaceholder}
               rows={5}
             />
           </label>
 
           <label>
-            Privacy scope
+            {t.memoryCapture.privacy}
             <select
               value={privacyScope}
               onChange={(event) =>
                 setPrivacyScope(event.target.value as PrivacyScope)
               }
             >
-              <option value="private">private</option>
-              <option value="trusted">trusted</option>
-              <option value="shareable">shareable</option>
+              <option value="private">{getPrivacyLabel(t, "private")}</option>
+              <option value="trusted">{getPrivacyLabel(t, "trusted")}</option>
+              <option value="shareable">{getPrivacyLabel(t, "shareable")}</option>
             </select>
           </label>
 
           <label>
-            Tags
+            {t.memoryCapture.tags}
             <input
               value={tags}
               onChange={(event) => setTags(event.target.value)}
-              placeholder="routine, health, idea"
+              placeholder={t.memoryCapture.tagsPlaceholder}
             />
           </label>
 
           <div className="form-actions">
-            <button type="submit">Save memory</button>
+            <button type="submit">{t.memoryCapture.save}</button>
             <span role="status" aria-live="polite">
               {status}
             </span>
@@ -327,7 +384,7 @@ export function App() {
         </form>
       </section>
 
-      <MemoryListPanel memories={memoryData.memories} />
+      <MemoryListPanel memories={memoryData.memories} language={language} t={t} />
     </main>
   );
 }

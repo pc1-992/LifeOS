@@ -1,22 +1,14 @@
 import type {
   ActionHistoryEntry,
-  ActivityFeedItem,
-  StructuredMemoryLayerName,
-  StructuredMemorySourceType,
-  TemporalForecastDirection,
-  TemporalMetric,
-  TemporalRiskType
+  StructuredMemoryLayerName
 } from "./types.js";
+import type { Language, Translations } from "./localization.js";
 
-export function formatTimestamp(timestamp: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+export function formatTimestamp(timestamp: string, language: Language): string {
+  return new Intl.DateTimeFormat(language === "he" ? "he-IL" : undefined, {
     dateStyle: "short",
     timeStyle: "short"
   }).format(new Date(timestamp));
-}
-
-export function formatActivityType(type: ActivityFeedItem["type"]): string {
-  return type.replace("_", " ");
 }
 
 export function getRecentCompletedActions(
@@ -27,36 +19,26 @@ export function getRecentCompletedActions(
     .slice(0, 5);
 }
 
-export function formatScore(score: number): string {
-  return `score ${score.toFixed(1)}`;
+export function formatScore(score: number, translations: Translations): string {
+  return `${translations.common.score} ${score.toFixed(1)}`;
 }
 
-export function formatPercent(value: number): string {
-  return `${Math.round(value * 100)}% completed`;
+export function formatPercent(value: number, translations: Translations): string {
+  return `${Math.round(value * 100)}% ${translations.common.completed}`;
 }
 
-export function formatSourceType(type: StructuredMemorySourceType): string {
-  return type.replaceAll("_", " ");
-}
-
-export function formatConfidence(value: number): string {
-  return `${Math.round(value * 100)}% confidence`;
-}
-
-export function formatSourceLayers(layers: StructuredMemoryLayerName[]): string {
-  return layers.length === 0 ? "No source layer" : layers.join(", ");
-}
-
-export function formatTemporalMetric(metric: TemporalMetric): string {
-  return metric.replaceAll("_", " ");
-}
-
-export function formatForecastDirection(
-  direction: TemporalForecastDirection
+export function formatConfidence(
+  value: number,
+  translations: Translations
 ): string {
-  return direction.replaceAll("_", " ");
+  return `${Math.round(value * 100)}% ${translations.common.confidence}`;
 }
 
-export function formatRiskType(type: TemporalRiskType): string {
-  return type.replaceAll("_", " ");
+export function formatSourceLayers(
+  layers: StructuredMemoryLayerName[],
+  translations: Translations
+): string {
+  return layers.length === 0
+    ? translations.common.noSourceLayer
+    : layers.map((layer) => translations.memoryLayers[layer]).join(", ");
 }

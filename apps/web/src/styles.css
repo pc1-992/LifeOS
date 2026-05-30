@@ -24,6 +24,32 @@ body {
   padding: 32px;
 }
 
+.language-switch {
+  width: min(720px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: #44505a;
+  font-size: 13px;
+}
+
+.language-switch span {
+  font-weight: 700;
+}
+
+.language-switch button {
+  border: 1px solid #cbd5cc;
+  color: #2f6f6b;
+  background: #ffffff;
+  padding: 7px 10px;
+}
+
+.language-switch button.active {
+  color: #ffffff;
+  background: #2f6f6b;
+}
+
 .panel {
   width: min(720px, 100%);
   border: 1px solid #d7ddd2;
@@ -185,8 +211,9 @@ h1 {
 }
 
 .timeline-list li {
-  border-left: 3px solid #cbd5cc;
-  padding: 2px 0 2px 14px;
+  border-inline-start: 3px solid #cbd5cc;
+  padding-block: 2px;
+  padding-inline-start: 14px;
 }
 
 .timeline-list time {
@@ -677,11 +704,11 @@ textarea:focus-visible {
 }
 
 .memory-health-summary li {
-  border-left: 3px solid #cbd5cc;
+  border-inline-start: 3px solid #cbd5cc;
   color: #172026;
   font-size: 15px;
   line-height: 1.5;
-  padding-left: 12px;
+  padding-inline-start: 12px;
 }
 
 .memory-health-empty {
@@ -1007,9 +1034,17 @@ textarea:focus-visible {
 
 .routine-summary ol {
   margin: 0;
-  padding-left: 22px;
+  padding-inline-start: 22px;
   color: #172026;
   line-height: 1.6;
+}
+
+[dir="rtl"] {
+  text-align: start;
+}
+
+[dir="rtl"] .language-switch {
+  justify-content: flex-start;
 }
 
 @media (max-width: 640px) {
