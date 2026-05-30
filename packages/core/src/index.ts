@@ -58,6 +58,22 @@ export type {
   RoutineSuggestionReason
 } from "./routine.js";
 export type {
+  TemporalForecast,
+  TemporalForecastDirection,
+  TemporalInsight,
+  TemporalInsightType,
+  TemporalMetric,
+  TemporalReport,
+  TemporalRisk,
+  TemporalRiskLevel,
+  TemporalRiskType,
+  TemporalSignal,
+  TemporalSignalType,
+  TemporalTimeWindow,
+  TemporalTrend,
+  TemporalTrendDirection
+} from "./temporal-intelligence.js";
+export type {
   EpisodicMemory,
   IdentityMemory,
   ProceduralMemory,

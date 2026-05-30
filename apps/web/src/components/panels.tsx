@@ -1,10 +1,13 @@
 import {
   formatActivityType,
   formatConfidence,
+  formatForecastDirection,
   formatPercent,
+  formatRiskType,
   formatScore,
   formatSourceLayers,
   formatSourceType,
+  formatTemporalMetric,
   formatTimestamp,
   getRecentCompletedActions
 } from "../format.js";
@@ -25,7 +28,8 @@ import type {
   RetrievalResult,
   RoutineSuggestion,
   StableTruth,
-  StructuredMemoryLayer
+  StructuredMemoryLayer,
+  TemporalReport
 } from "../types.js";
 
 export function DashboardPanel({
@@ -489,6 +493,99 @@ export function KnowledgeGraphPanel({
                 ))}
               </ul>
             )}
+          </section>
+        </div>
+      )}
+    </section>
+  );
+}
+
+export function TemporalIntelligencePanel({
+  temporalReport
+}: {
+  temporalReport: TemporalReport | null;
+}) {
+  return (
+    <section className="panel temporal-panel">
+      <p className="eyebrow">Temporal Intelligence</p>
+      <h1>Change over time</h1>
+      {temporalReport === null ? (
+        <p className="empty-state">Loading temporal intelligence.</p>
+      ) : (
+        <div className="temporal-summary">
+          <p>{temporalReport.summary}</p>
+          <small>{temporalReport.timeWindowAnalyzed.label}</small>
+
+          <section>
+            <h2>Trends</h2>
+            <ul>
+              {temporalReport.trends.map((trend) => (
+                <li key={trend.id}>
+                  <div>
+                    <strong>{formatTemporalMetric(trend.metric)}</strong>
+                    <span>{trend.direction}</span>
+                  </div>
+                  <p>{trend.explanation}</p>
+                  <small>
+                    {trend.evidenceCount} evidence ·{" "}
+                    {formatConfidence(trend.confidenceScore)}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section>
+            <h2>Risks</h2>
+            <ul>
+              {temporalReport.risks.map((risk) => (
+                <li key={risk.id}>
+                  <div>
+                    <strong>{formatRiskType(risk.type)}</strong>
+                    <span>{risk.level}</span>
+                  </div>
+                  <p>{risk.explanation}</p>
+                  <small>
+                    {risk.evidenceCount} evidence ·{" "}
+                    {formatConfidence(risk.confidenceScore)}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section>
+            <h2>Forecasts</h2>
+            <ul>
+              {temporalReport.forecasts.map((forecast) => (
+                <li key={forecast.id}>
+                  <div>
+                    <strong>{formatTemporalMetric(forecast.metric)}</strong>
+                    <span>{formatForecastDirection(forecast.direction)}</span>
+                  </div>
+                  <p>{forecast.explanation}</p>
+                  <small>
+                    {forecast.evidenceCount} evidence ·{" "}
+                    {formatConfidence(forecast.confidenceScore)}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section>
+            <h2>Supporting Evidence</h2>
+            <ul>
+              {temporalReport.supportingEvidence.slice(0, 5).map((signal) => (
+                <li key={signal.id}>
+                  <div>
+                    <strong>{signal.label}</strong>
+                    <span>{signal.type.replaceAll("_", " ")}</span>
+                  </div>
+                  <p>{signal.summary}</p>
+                </li>
+              ))}
+            </ul>
           </section>
         </div>
       )}

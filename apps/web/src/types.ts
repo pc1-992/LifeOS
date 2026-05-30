@@ -300,3 +300,115 @@ export interface KnowledgeGraphReport {
   isolatedNodes: KnowledgeNode[];
   contradictionCandidates: KnowledgeEdge[];
 }
+
+export type TemporalSignalType =
+  | "context_history"
+  | "action_history"
+  | "pattern_insight"
+  | "recommendation_feedback"
+  | "stable_truth"
+  | "personal_operating_profile"
+  | "knowledge_graph";
+
+export type TemporalMetric =
+  | "energy"
+  | "focus"
+  | "stress"
+  | "routine_effectiveness"
+  | "action_completion";
+
+export type TemporalTrendDirection =
+  | "improving"
+  | "declining"
+  | "stable"
+  | "increasing"
+  | "decreasing";
+
+export type TemporalForecastDirection =
+  | "likely_improving"
+  | "likely_declining"
+  | "likely_stable"
+  | "likely_increasing"
+  | "likely_decreasing";
+
+export type TemporalRiskType =
+  | "burnout"
+  | "overload"
+  | "inconsistency"
+  | "stagnation";
+
+export type TemporalRiskLevel = "low" | "moderate" | "high";
+
+export interface TemporalTimeWindow {
+  startedAt: string | null;
+  endedAt: string | null;
+  label: string;
+}
+
+export interface TemporalSignal {
+  id: string;
+  type: TemporalSignalType;
+  sourceId: string;
+  recordedAt: string | null;
+  label: string;
+  summary: string;
+  value?: number;
+}
+
+export interface TemporalTrend {
+  id: string;
+  metric: TemporalMetric;
+  direction: TemporalTrendDirection;
+  earlierValue: number | null;
+  recentValue: number | null;
+  explanation: string;
+  evidenceCount: number;
+  confidenceScore: number;
+  timeWindowAnalyzed: TemporalTimeWindow;
+  sourceSignals: TemporalSignal[];
+}
+
+export interface TemporalForecast {
+  id: string;
+  metric: Exclude<TemporalMetric, "action_completion">;
+  direction: TemporalForecastDirection;
+  explanation: string;
+  evidenceCount: number;
+  confidenceScore: number;
+  timeWindowAnalyzed: TemporalTimeWindow;
+  sourceSignals: TemporalSignal[];
+}
+
+export interface TemporalRisk {
+  id: string;
+  type: TemporalRiskType;
+  level: TemporalRiskLevel;
+  explanation: string;
+  evidenceCount: number;
+  confidenceScore: number;
+  timeWindowAnalyzed: TemporalTimeWindow;
+  sourceSignals: TemporalSignal[];
+}
+
+export interface TemporalInsight {
+  id: string;
+  type: "trend" | "forecast" | "risk";
+  title: string;
+  explanation: string;
+  evidenceCount: number;
+  confidenceScore: number;
+  timeWindowAnalyzed: TemporalTimeWindow;
+  sourceSignals: TemporalSignal[];
+}
+
+export interface TemporalReport {
+  generatedAt: string;
+  timeWindowAnalyzed: TemporalTimeWindow;
+  signalCount: number;
+  trends: TemporalTrend[];
+  forecasts: TemporalForecast[];
+  risks: TemporalRisk[];
+  insights: TemporalInsight[];
+  supportingEvidence: TemporalSignal[];
+  summary: string;
+}

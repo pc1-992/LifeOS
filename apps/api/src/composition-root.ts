@@ -14,6 +14,7 @@ import {
   GenerateNextBestStepUseCase,
   GeneratePersonalOperatingProfileUseCase,
   GeneratePatternInsightsUseCase,
+  GenerateTemporalIntelligenceUseCase,
   GetActivityFeedUseCase,
   MemoryLayerProvider,
   RecommendationFeedbackUseCase,
@@ -63,6 +64,11 @@ export function createAppContext() {
         actionHistory
       ),
       knowledgeGraph: new BuildKnowledgeGraphUseCase(
+        memories,
+        contexts,
+        actionHistory
+      ),
+      temporalIntelligence: new GenerateTemporalIntelligenceUseCase(
         memories,
         contexts,
         actionHistory

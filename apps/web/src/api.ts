@@ -13,7 +13,8 @@ import type {
   RetrievalResult,
   RoutineSuggestion,
   StableTruth,
-  StructuredMemoryLayer
+  StructuredMemoryLayer,
+  TemporalReport
 } from "./types.js";
 
 const memoryLayerPaths = [
@@ -94,6 +95,10 @@ export async function getStableTruths(): Promise<StableTruth[]> {
 
 export async function getKnowledgeGraphReport(): Promise<KnowledgeGraphReport> {
   return getJson<KnowledgeGraphReport>("/knowledge-graph/report");
+}
+
+export async function getTemporalReport(): Promise<TemporalReport> {
+  return getJson<TemporalReport>("/temporal-intelligence/report");
 }
 
 export async function postJson(

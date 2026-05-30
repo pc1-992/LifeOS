@@ -15,7 +15,8 @@ import {
   getRecommendationFeedback,
   getRelevantMemories,
   getRoutineSuggestion,
-  getStableTruths
+  getStableTruths,
+  getTemporalReport
 } from "./api.js";
 import type {
   ActionHistoryEntry,
@@ -33,7 +34,8 @@ import type {
   RetrievalResult,
   RoutineSuggestion,
   StableTruth,
-  StructuredMemoryLayer
+  StructuredMemoryLayer,
+  TemporalReport
 } from "./types.js";
 
 export function useDashboardData() {
@@ -191,13 +193,22 @@ export function useFeedbackData() {
 export function useGraphData() {
   const [knowledgeGraphReport, setKnowledgeGraphReport] =
     React.useState<KnowledgeGraphReport | null>(null);
+  const [temporalReport, setTemporalReport] =
+    React.useState<TemporalReport | null>(null);
 
   async function loadGraphData(): Promise<void> {
-    setKnowledgeGraphReport(await getKnowledgeGraphReport());
+    const [graphReport, timeReport] = await Promise.all([
+      getKnowledgeGraphReport(),
+      getTemporalReport()
+    ]);
+
+    setKnowledgeGraphReport(graphReport);
+    setTemporalReport(timeReport);
   }
 
   return {
     knowledgeGraphReport,
+    temporalReport,
     loadGraphData
   };
 }

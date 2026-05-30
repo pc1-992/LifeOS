@@ -16,6 +16,7 @@ import {
   RetrievalPanel,
   RoutineSuggestionPanel,
   StableTruthsPanel,
+  TemporalIntelligencePanel,
   TimelinePanel
 } from "./components/panels.js";
 import {
@@ -193,6 +194,7 @@ export function App() {
       <KnowledgeGraphPanel
         knowledgeGraphReport={graphData.knowledgeGraphReport}
       />
+      <TemporalIntelligencePanel temporalReport={graphData.temporalReport} />
       <ReflectionPanel dailyReflection={dashboardData.dailyReflection} />
       <InsightsPanel patternInsights={dashboardData.patternInsights} />
       <TimelinePanel activityFeed={dashboardData.activityFeed} />

@@ -10,6 +10,7 @@ import { CaptureContextUseCase } from "./capture-context.js";
 import { CaptureMemoryUseCase } from "./capture-memory.js";
 import { GenerateMemoryHygieneReportUseCase } from "./generate-memory-hygiene-report.js";
 import { GenerateNextBestStepUseCase } from "./generate-next-best-step.js";
+import { GenerateTemporalIntelligenceUseCase } from "./generate-temporal-intelligence.js";
 import type {
   ActionHistoryRepository,
   ContextRepository,
@@ -102,6 +103,41 @@ test("GenerateMemoryHygieneReportUseCase returns deterministic status counts", a
   assert.ok(Array.isArray(result.report.suggestedCleanupActions));
 });
 
+test("GenerateTemporalIntelligenceUseCase detects deterministic temporal movement", async () => {
+  const memories = new TestMemoryRepository([
+    makeMemory("mem_temporal", "Stress is lower when work is paced.")
+  ]);
+  const contexts = new TestContextRepository([
+    makeContextAt("ctx_1", "stressed", 3, 4, "Overwhelmed by work", "2026-01-01T08:00:00.000Z"),
+    makeContextAt("ctx_2", "tense", 4, 4, "Too many tasks", "2026-01-02T08:00:00.000Z"),
+    makeContextAt("ctx_3", "calm", 7, 7, "Clear plan", "2026-01-03T08:00:00.000Z"),
+    makeContextAt("ctx_4", "focused", 8, 8, "Steady progress", "2026-01-04T08:00:00.000Z")
+  ]);
+  const actionHistory = new TestActionHistoryRepository([
+    makeAction("act_1", "skipped", "2026-01-01T09:00:00.000Z"),
+    makeAction("act_2", "completed", "2026-01-02T09:00:00.000Z"),
+    makeAction("act_3", "completed", "2026-01-03T09:00:00.000Z"),
+    makeAction("act_4", "completed", "2026-01-04T09:00:00.000Z")
+  ]);
+  const useCase = new GenerateTemporalIntelligenceUseCase(
+    memories,
+    contexts,
+    actionHistory
+  );
+
+  const report = await useCase.execute();
+  const energyTrend = report.trends.find((trend) => trend.metric === "energy");
+  const stressForecast = report.forecasts.find(
+    (forecast) => forecast.metric === "stress"
+  );
+
+  assert.equal(energyTrend?.direction, "improving");
+  assert.equal(stressForecast?.direction, "likely_decreasing");
+  assert.ok(report.risks.some((risk) => risk.type === "burnout"));
+  assert.ok(report.insights.every((insight) => insight.evidenceCount >= 0));
+  assert.ok(report.supportingEvidence.length > 0);
+});
+
 class TestMemoryRepository implements MemoryRepository {
   constructor(private readonly memories: Memory[] = []) {}
 
@@ -179,5 +215,46 @@ function makeContext(
     summary: `${input.mood} mood, ${input.energyLevel}/10 energy, ${input.focusLevel}/10 focus: ${input.currentSituation}`,
     signals: ["manual"],
     privacyScope: "private"
+  };
+}
+
+function makeContextAt(
+  id: string,
+  mood: string,
+  energyLevel: number,
+  focusLevel: number,
+  currentSituation: string,
+  capturedAt: string
+): ContextSnapshot {
+  return {
+    id,
+    capturedAt: new Date(capturedAt),
+    mood,
+    energyLevel,
+    focusLevel,
+    currentSituation,
+    summary: `${mood} mood, ${energyLevel}/10 energy, ${focusLevel}/10 focus: ${currentSituation}`,
+    signals: ["manual"],
+    privacyScope: "private"
+  };
+}
+
+function makeAction(
+  id: string,
+  status: ActionHistoryEntry["status"],
+  timestamp: string
+): ActionHistoryEntry {
+  return {
+    id,
+    suggestedAction: {
+      id: `step_${id}`,
+      title: "Reset routine",
+      action: "Pause, choose one task, and continue.",
+      reason: "recovery_needed",
+      supportingSummary: "Test action"
+    },
+    status,
+    timestamp: new Date(timestamp),
+    effectivenessScore: status === "completed" ? 5 : 1
   };
 }

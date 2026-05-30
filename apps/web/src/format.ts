@@ -2,7 +2,10 @@ import type {
   ActionHistoryEntry,
   ActivityFeedItem,
   StructuredMemoryLayerName,
-  StructuredMemorySourceType
+  StructuredMemorySourceType,
+  TemporalForecastDirection,
+  TemporalMetric,
+  TemporalRiskType
 } from "./types.js";
 
 export function formatTimestamp(timestamp: string): string {
@@ -42,4 +45,18 @@ export function formatConfidence(value: number): string {
 
 export function formatSourceLayers(layers: StructuredMemoryLayerName[]): string {
   return layers.length === 0 ? "No source layer" : layers.join(", ");
+}
+
+export function formatTemporalMetric(metric: TemporalMetric): string {
+  return metric.replaceAll("_", " ");
+}
+
+export function formatForecastDirection(
+  direction: TemporalForecastDirection
+): string {
+  return direction.replaceAll("_", " ");
+}
+
+export function formatRiskType(type: TemporalRiskType): string {
+  return type.replaceAll("_", " ");
 }

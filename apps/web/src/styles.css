@@ -84,6 +84,10 @@ body {
   border-color: #ccd6d6;
 }
 
+.temporal-panel {
+  border-color: #d2d6c9;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #2f6f6b;
@@ -797,6 +801,94 @@ textarea:focus-visible {
   font-size: 13px;
   font-weight: 700;
   padding: 4px 8px;
+}
+
+.temporal-summary {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.temporal-summary > p {
+  margin: 0;
+  color: #172026;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.temporal-summary > small {
+  color: #44505a;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.temporal-summary section {
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.temporal-summary h2 {
+  margin: 0 0 10px;
+  color: #44505a;
+  font-size: 14px;
+}
+
+.temporal-summary ul {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.temporal-summary li {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid #edf0ea;
+  padding-top: 10px;
+}
+
+.temporal-summary li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.temporal-summary li div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.temporal-summary strong {
+  color: #172026;
+  font-size: 15px;
+}
+
+.temporal-summary span {
+  width: fit-content;
+  border: 1px solid #cbd5cc;
+  border-radius: 999px;
+  color: #2f6f6b;
+  background: #f6f7f2;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 7px;
+}
+
+.temporal-summary p {
+  margin: 0;
+  color: #172026;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.temporal-summary small {
+  color: #44505a;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .form-actions {

@@ -11,6 +11,7 @@ export { MemoryLayerProvider } from "./memory-layer-provider.js";
 export { GenerateNextBestStepUseCase } from "./generate-next-best-step.js";
 export { GeneratePersonalOperatingProfileUseCase } from "./generate-personal-operating-profile.js";
 export { GeneratePatternInsightsUseCase } from "./generate-pattern-insights.js";
+export { GenerateTemporalIntelligenceUseCase } from "./generate-temporal-intelligence.js";
 export { GetActivityFeedUseCase } from "./get-activity-feed.js";
 export type {
   ActionHistoryRepository,

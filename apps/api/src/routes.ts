@@ -145,6 +145,16 @@ export async function handleRequest(
     return;
   }
 
+  if (path === "/temporal-intelligence" && request.method === "GET") {
+    sendJson(response, 200, await useCases.temporalIntelligence.execute());
+    return;
+  }
+
+  if (path === "/temporal-intelligence/report" && request.method === "GET") {
+    sendJson(response, 200, await useCases.temporalIntelligence.report());
+    return;
+  }
+
   if (path === "/action-history" && request.method === "GET") {
     sendJson(response, 200, await repositories.actionHistory.findAll());
     return;
